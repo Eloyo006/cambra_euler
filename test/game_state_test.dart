@@ -61,7 +61,8 @@ void main() {
   test('el progrés es desa i es recupera', () async {
     final c = await makeContainer();
     final game = c.read(gameProvider.notifier)..start();
-    game.answer(rooms[0].puzzles[0], '36');
+    final p11 = rooms[0].puzzles[0];
+    game.answer(p11, solutionOf(p11.steps[0]));
     game.revealHint(rooms[0].puzzles[0]);
     game.leave();
 
@@ -86,5 +87,23 @@ void main() {
     final s = c.read(gameProvider);
     expect(s.isUnlocked(r, r.puzzles[0]), isTrue);
     expect(s.isUnlocked(r, r.puzzles[1]), isFalse);
+  });
+
+  test('el llibre amagat: apareix amb el 2.3 i es recorda obert', () async {
+    final c = await makeContainer();
+    final game = c.read(gameProvider.notifier);
+    final p23 = puzzlesById[secretBookUnlockedBy]!;
+    game.openBook();
+    expect(c.read(gameProvider).bookOpened, isFalse); // encara no hi és
+    for (final s in p23.steps) {
+      game.answer(p23, solutionOf(s));
+    }
+    expect(c.read(gameProvider).bookAvailable, isTrue);
+    game.openBook();
+    expect(c.read(gameProvider).bookOpened, isTrue);
+
+    final raw = c.read(prefsProvider).getString(storageKey)!;
+    final c2 = await makeContainer({storageKey: raw});
+    expect(c2.read(gameProvider).bookOpened, isTrue);
   });
 }

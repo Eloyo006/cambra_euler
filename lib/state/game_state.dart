@@ -26,6 +26,7 @@ class GameState {
     this.penalty = 0,
     this.started = false,
     this.finished = false,
+    this.bookOpened = false,
   });
 
   /// Passos resolts per puzle (id → nombre de passos encertats).
@@ -43,7 +44,13 @@ class GameState {
   final bool started;
   final bool finished;
 
+  /// Cert quan s'ha obert el llibre amagat de la Biblioteca.
+  final bool bookOpened;
+
   int get total => elapsed + penalty;
+
+  /// El llibre apareix a la Biblioteca quan es resol el puzle 2.3.
+  bool get bookAvailable => isSolved(puzzlesById[secretBookUnlockedBy]!);
 
   int stepsDone(Puzzle p) => progress[p.id] ?? 0;
   bool isSolved(Puzzle p) => stepsDone(p) >= p.steps.length;
@@ -68,6 +75,7 @@ class GameState {
     int? penalty,
     bool? started,
     bool? finished,
+    bool? bookOpened,
   }) => GameState(
     progress: progress ?? this.progress,
     hints: hints ?? this.hints,
@@ -75,6 +83,7 @@ class GameState {
     penalty: penalty ?? this.penalty,
     started: started ?? this.started,
     finished: finished ?? this.finished,
+    bookOpened: bookOpened ?? this.bookOpened,
   );
 
   Map<String, dynamic> toJson() => {
@@ -84,6 +93,7 @@ class GameState {
     'penalty': penalty,
     'started': started,
     'finished': finished,
+    'bookOpened': bookOpened,
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
@@ -93,6 +103,7 @@ class GameState {
     penalty: j['penalty'] as int? ?? 0,
     started: j['started'] as bool? ?? false,
     finished: j['finished'] as bool? ?? false,
+    bookOpened: j['bookOpened'] as bool? ?? false,
   );
 }
 
@@ -178,6 +189,13 @@ class GameNotifier extends Notifier<GameState> {
       hints: {...state.hints, p.id: used + 1},
       penalty: state.penalty + hintPenalties[used],
     );
+    _save();
+  }
+
+  /// Obre el llibre amagat (només si ja ha aparegut).
+  void openBook() {
+    if (state.bookOpened || !state.bookAvailable) return;
+    state = state.copyWith(bookOpened: true);
     _save();
   }
 

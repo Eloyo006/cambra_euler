@@ -51,8 +51,8 @@ void main() {
       expect(total - union, 4);
       // Regions: només A, A∩B, només B, fora.
       expect([a - ab, ab, b - ab, total - union], [18, 7, 11, 4]);
-      expect(p('1.1').steps[0].check('36'), isTrue);
-      expect(p('1.1').steps[1].check('4'), isTrue);
+      expect(p('1.1').steps[0].check([18, 7, 11, 4]), isTrue);
+      expect(p('1.1').steps[1].check('36'), isTrue);
     });
 
     test('1.2 De Morgan sobre un univers de prova', () {
@@ -63,6 +63,11 @@ void main() {
       expect(c(a.intersection(b)), c(a).union(c(b)));
       expect(p('1.2').steps[0].solutionLabel, 'A′ ∩ B′');
       expect(p('1.2').steps[1].solutionLabel, 'A′ ∪ B′');
+      // Els passos accepten la seva pròpia solució i expressions equivalents.
+      expect(p('1.2').steps[0].check('A′ ∩ B′'), isTrue);
+      expect(p('1.2').steps[0].check('(B′ ∩ A′)'), isTrue);
+      expect(p('1.2').steps[1].check('B′ ∪ A′'), isTrue);
+      expect(p('1.2').steps[0].check('A′ ∪ B′'), isFalse);
     });
 
     test('1.3 partició de {1..6} i classe [2] mod 3', () {
@@ -79,7 +84,26 @@ void main() {
       };
       expect(class2, {2, 5});
       expect(p('1.3').steps[0].solutionLabel, '{1,3,5}, {2,4}, {6}');
-      expect(p('1.3').steps[1].solutionLabel, '{2, 5}');
+      expect(p('1.3').steps[1].check(parts), isTrue);
+      expect(
+        p('1.3').steps[2].check([
+          {3, 6},
+          {1, 4},
+          {2, 5},
+        ]),
+        isTrue,
+      );
+      expect(p('1.3').steps[2].check(parts), isFalse);
+      // Les classes de la solució són exactament les classes mod 3.
+      final classes = [
+        for (var r = 0; r < 3; r++)
+          {
+            for (var x = 1; x <= 6; x++)
+              if (mod(x, 3) == r) x,
+          },
+      ];
+      expect(p('1.3').steps[2].check(classes), isTrue);
+      expect(p('1.3').steps[3].solutionLabel, '{2, 5}');
     });
   });
 
@@ -197,6 +221,8 @@ void main() {
       expect(cs, [5]);
       final code = '${toProfNotation(a, 7)}3${toProfNotation(cs.single, 7)}54';
       expect(code, '53554');
+      expect(secretBookText, contains("a és l'invers de 3; c·5 ≡ 4, a ℤ₇"));
+      expect(secretBookUnlockedBy, '2.3');
       expect(finalPuzzle.steps.map((s) => s.solutionLabel), [
         '5',
         '5',

@@ -42,20 +42,24 @@ const List<Room> rooms = [
             "La Biblioteca té 40 alumnes inscrits. 25 programen en "
             "Flutter (conjunt A), 18 en Angular (conjunt B) i 7 en tots dos.",
         steps: [
+          VennStep(
+            prompt:
+                'Toca cada regió del diagrama i escriu-hi quants alumnes hi ha.',
+            regions: [18, 7, 11, 4],
+            labels: ['Només A', 'A ∩ B', 'Només B', 'Cap dels dos'],
+          ),
           CodeStep(
             prompt:
                 'Quants alumnes programen en Flutter o en Angular? |A ∪ B| = ?',
             solution: '36',
           ),
-          CodeStep(
-            prompt: 'Quants alumnes no programen en cap dels dos?',
-            solution: '4',
-          ),
         ],
         hints: [
-          "Si sumes 25 + 18, els alumnes que fan tots dos es compten dues vegades.",
+          "Comença pel centre: els que fan tots dos. Després, «només A» és "
+              "25 menys els del centre.",
           "Principi d'inclusió-exclusió: |A ∪ B| = |A| + |B| − |A ∩ B|.",
-          "|A ∪ B| = 25 + 18 − 7. Els que no fan cap són 40 − |A ∪ B|.",
+          "Només A = 25 − 7, només B = 18 − 7. |A ∪ B| = 25 + 18 − 7 i "
+              "els que no fan cap són 40 − |A ∪ B|.",
         ],
       ),
       Puzzle(
@@ -64,17 +68,24 @@ const List<Room> rooms = [
         source: 'Apunts FOMA · Conjunts',
         statement:
             "Una porta de la Biblioteca porta gravat: «Només passa qui "
-            "no és ni d'A ni de B». És a dir, la porta s'obre amb (A ∪ B)′.",
+            "no és ni d'A ni de B». És a dir, la porta s'obre amb (A ∪ B)′. "
+            "Però el tauler només té fitxes de complementaris: A′ i B′.",
         steps: [
-          ChoiceStep(
-            prompt: 'A quin conjunt equival (A ∪ B)′?',
-            options: ['A′ ∪ B′', 'A′ ∩ B′', 'A ∩ B', '(A ∩ B)′'],
-            correctIndex: 1,
+          ExpressionStep(
+            prompt:
+                'Construeix una expressió equivalent a (A ∪ B)′ '
+                'fent servir A′ i B′.',
+            target: '(A∪B)′',
+            solution: 'A′ ∩ B′',
+            tokens: ['A′', 'B′', 'A', 'B', '∩', '∪', '(', ')'],
           ),
-          ChoiceStep(
-            prompt: 'La segona porta demana (A ∩ B)′. A què equival?',
-            options: ['A′ ∩ B′', 'A ∪ B', 'A′ ∪ B′', 'A′ ∩ B'],
-            correctIndex: 2,
+          ExpressionStep(
+            prompt:
+                'La segona porta demana (A ∩ B)′. Construeix-ne una '
+                'expressió equivalent.',
+            target: '(A∩B)′',
+            solution: 'A′ ∪ B′',
+            tokens: ['A′', 'B′', 'A', 'B', '∩', '∪', '(', ')'],
           ),
         ],
         hints: [
@@ -89,7 +100,7 @@ const List<Room> rooms = [
         title: 'La prestatgeria',
         source: 'Apunts FOMA · Particions i relacions d\'equivalència',
         statement:
-            "Els llibres numerats de l'1 al 6 s'han de guardar en caixes. "
+            "Els llibres numerats de l'1 al 6 s'han de guardar en tres caixes. "
             "Perquè sigui una partició, cap caixa pot quedar buida i cada "
             "llibre ha d'estar en exactament una caixa.",
         steps: [
@@ -103,10 +114,29 @@ const List<Room> rooms = [
             ],
             correctIndex: 1,
           ),
-          ChoiceStep(
+          PartitionStep(
             prompt:
-                'A {1, …, 6} definim a ~ b ⇔ a ≡ b (mod 3). '
-                'Quina és la classe [2]?',
+                'Ara fes-ne una tu: arrossega els sis llibres a les tres '
+                'caixes. Qualsevol partició val.',
+            items: [1, 2, 3, 4, 5, 6],
+            boxes: 3,
+          ),
+          PartitionStep(
+            prompt:
+                'La bibliotecària ordena per la relació a ~ b ⇔ a ≡ b (mod 3). '
+                'Posa a cada caixa una classe d\'equivalència.',
+            items: [1, 2, 3, 4, 5, 6],
+            boxes: 3,
+            target: [
+              {3, 6},
+              {1, 4},
+              {2, 5},
+            ],
+            success:
+                'Les classes mod 3 formen una partició: {3,6}, {1,4}, {2,5}.',
+          ),
+          ChoiceStep(
+            prompt: 'Amb aquesta relació, quina és la classe [2]?',
             options: ['{2}', '{2, 4, 6}', '{2, 5}', '{1, 2}'],
             correctIndex: 2,
           ),
@@ -114,11 +144,14 @@ const List<Room> rooms = [
         hints: [
           "Una partició no pot repetir elements, ni deixar-ne cap fora, ni "
               "tenir parts buides.",
-          "La classe [a] conté tots els b tals que b − a és múltiple de 3.",
-          "La partició és {1,3,5}, {2,4}, {6}. Per a [2]: 2 i 2 + 3.",
+          "La classe [a] conté tots els b tals que b − a és múltiple de 3. "
+              "Mira el residu de dividir cada llibre per 3.",
+          "La partició és {1,3,5}, {2,4}, {6}. Classes mod 3: residu 0 → {3,6}, "
+              "residu 1 → {1,4}, residu 2 → {2,5}.",
         ],
         outro:
-            "Les classes mod 3 també formen una partició: {3,6}, {1,4}, {2,5}.",
+            "Les classes d'equivalència sempre formen una partició: aquí és on "
+            "es troben els conjunts i l'aritmètica modular.",
       ),
     ],
   ),
@@ -378,8 +411,9 @@ const Puzzle finalPuzzle = Puzzle(
   title: "La porta d'Euler",
   source: 'Llista d\'exercicis · Ex. 4',
   statement:
-      "El pany «a 3 c 5 4» funciona a ℤ₇ = {1, …, 7}. Sota el pany hi ha "
-      "gravat: a = 3⁻¹ i 5c ≡ 4 (mod 7).",
+      "El pany «a 3 c 5 4» funciona a ℤ₇ = {1, …, 7}. Ja tens les xifres de "
+      "les sales, però falten a i c. Les condicions que han de complir no són "
+      "a la porta: Euler les va amagar en un llibre.",
   steps: [
     CodeStep(prompt: 'Quant val a?', solution: '5'),
     CodeStep(prompt: 'Quant val c?', solution: '5'),
@@ -391,6 +425,18 @@ const Puzzle finalPuzzle = Puzzle(
     "3·5 = 15 ≡ 1 i 5·5 = 25 ≡ 4 (mod 7). El codi és a 3 c 5 4.",
   ],
 );
+
+/// El llibre amagat: apareix a la Biblioteca quan es resol el puzle 2.3
+/// («LIBRO») i conté les condicions de la porta.
+const String secretBookUnlockedBy = '2.3';
+const String secretBookRoom = 'sala1';
+const String secretBookTitle = 'Un llibre que brilla';
+const String secretBookText =
+    "Entre dos volums de Venn hi ha un quadern d'Euler que abans no hi era. "
+    "A l'última pàgina hi diu:\n\n«a és l'invers de 3; c·5 ≡ 4, a ℤ₇.»";
+const String secretBookMissing =
+    "Encara no has trobat on són escrites les condicions. Potser el missatge "
+    "xifrat de la Sala dels Rellotges diu on buscar…";
 
 /// Tots els puzles, inclosa la porta, indexats per id.
 final Map<String, Puzzle> puzzlesById = {

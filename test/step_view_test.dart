@@ -10,7 +10,11 @@ const allSteps = <PuzzleStep>[
   TextStep(prompt: 'Text', accepted: ['LIBRO']),
   ChoiceStep(prompt: 'Tria', options: ['a', 'b'], correctIndex: 1),
   TableStep(prompt: 'Taula', modulus: 5, prefilled: [1, 5, 7, 8, 9]),
-  VennStep(prompt: 'Venn', regions: [18, 7, 11, 4]),
+  VennStep(
+    prompt: 'Venn',
+    regions: [18, 7, 11, 4],
+    labels: ['Només A', 'A ∩ B', 'Només B', 'Fora'],
+  ),
   ExpressionStep(prompt: 'Expr', target: '(A∪B)′', solution: 'A′ ∩ B′'),
   PartitionStep(prompt: 'Partició', items: [1, 2, 3, 4, 5, 6], boxes: 3),
   OrderStep(
@@ -109,5 +113,74 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Moviments: 1'), findsOneWidget);
+  });
+
+  testWidgets("Venn: les regions s'omplen amb el diàleg i s'envien", (
+    tester,
+  ) async {
+    final answers = await pumpStep(tester, allSteps[4], result: true);
+    const values = [18, 7, 11, 4];
+    const labels = ['Només A', 'A ∩ B', 'Només B', 'Fora'];
+    for (var i = 0; i < 4; i++) {
+      await tester.tap(find.text('${labels[i]}: ?'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '${values[i]}');
+      await tester.tap(find.text("D'acord"));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('Només A: 18'), findsOneWidget);
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [values]);
+  });
+
+  testWidgets('Venn: tocar el centre del diagrama obre A ∩ B', (tester) async {
+    await pumpStep(tester, allSteps[4]);
+    final paint = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.size.width > 200,
+    );
+    await tester.tap(paint);
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AlertDialog, 'A ∩ B'), findsOneWidget);
+  });
+
+  testWidgets('Prestatgeria: tocar llibre i caixa, i arrossegar', (
+    tester,
+  ) async {
+    final answers = await pumpStep(tester, allSteps[6], result: true);
+    Finder book(int n) =>
+        find.byWidgetPredicate((w) => w is Draggable<int> && w.data == n);
+    Finder box(int b) => find.text('Caixa $b');
+
+    // Buit: es rebutja.
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(find.text('Encara queden llibres al prestatge.'), findsOneWidget);
+
+    // Llibres 1–4 tocant, 5 i 6 arrossegant.
+    const target = {1: 1, 2: 2, 3: 1, 4: 2, 5: 1, 6: 3};
+    for (final e in target.entries.take(4)) {
+      await tester.tap(book(e.key));
+      await tester.pump();
+      await tester.tap(box(e.value));
+      await tester.pump();
+    }
+    for (final e in target.entries.skip(4)) {
+      await tester.drag(
+        book(e.key),
+        tester.getCenter(box(e.value)) - tester.getCenter(book(e.key)),
+      );
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(find.text('Comprova'));
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [
+      [
+        {1, 3, 5},
+        {2, 4},
+        {6},
+      ],
+    ]);
   });
 }

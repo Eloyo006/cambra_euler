@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme.dart';
+import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
 import '../widgets/mod_clock.dart';
+import '../widgets/secret_book.dart';
 import 'puzzle_screen.dart';
 
 class RoomScreen extends ConsumerWidget {
@@ -37,6 +39,8 @@ class RoomScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             for (final p in room.puzzles)
               _PuzzleTile(room: room, puzzle: p, state: s),
+            if (room.id == secretBookRoom && s.bookAvailable)
+              const SecretBookCard(),
             if (s.isRoomSolved(room)) ...[
               const SizedBox(height: 16),
               Card(

@@ -541,9 +541,19 @@ const Puzzle finalPuzzle = Puzzle(
       "les sales, però falten a i c. Les condicions que han de complir no són "
       "a la porta: Euler les va amagar en un llibre.",
   steps: [
-    CodeStep(prompt: 'Quant val a?', solution: '5'),
-    CodeStep(prompt: 'Quant val c?', solution: '5'),
-    CodeStep(prompt: 'Introdueix el codi complet del pany.', solution: '53554'),
+    CodeStep(
+      prompt: 'Primer, a: quin element de ℤ₇ multiplicat per 3 dona 1?',
+      solution: '5',
+    ),
+    CodeStep(prompt: 'Ara c: quin c de ℤ₇ compleix 5c ≡ 4?', solution: '5'),
+    WheelLockStep(
+      prompt:
+          'Gira les rodes lliures fins a «a 3 c 5 4». Les xifres de les sales '
+          'ja hi són.',
+      symbols: ['1', '2', '3', '4', '5', '6', '7'],
+      solution: ['5', '3', '5', '5', '4'],
+      locked: [1, 3, 4],
+    ),
   ],
   hints: [
     "a és el nombre que multiplicat per 3 dona 1 mòdul 7.",

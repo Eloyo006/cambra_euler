@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme.dart';
 import '../../data/content.dart';
 import '../../models/puzzle.dart';
+import '../../state/settings.dart';
 import '../aids/affine_table.dart';
 import '../aids/caesar_wheel.dart';
 import '../feedback.dart';
@@ -61,6 +62,7 @@ class _StepViewState extends State<StepView> {
 
   void _reject(String message) {
     HapticFeedback.heavyImpact();
+    Sfx.error();
     setState(() => _error = message);
     _shake.currentState?.shake();
   }

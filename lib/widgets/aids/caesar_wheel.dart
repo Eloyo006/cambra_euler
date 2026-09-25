@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/modular.dart';
 import '../../core/theme.dart';
+import '../../state/settings.dart';
 
 /// Roda de César: el disc exterior (fix) és el text clar i el disc interior
 /// (giratori) és el text xifrat amb desplaçament k: x → x + k (mod 27).
@@ -27,7 +28,10 @@ class _CaesarWheelState extends State<CaesarWheel> {
 
   void _setShift(int k) {
     final next = mod(k, n);
-    if (next != _shift) HapticFeedback.selectionClick();
+    if (next != _shift) {
+      HapticFeedback.selectionClick();
+      Sfx.click();
+    }
     setState(() => _shift = next);
   }
 

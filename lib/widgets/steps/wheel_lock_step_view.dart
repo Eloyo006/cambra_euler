@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/theme.dart';
 import '../../models/puzzle.dart';
+import '../../state/settings.dart';
 import 'step_view.dart';
 
 /// Pany de rodes fet amb [ListWheelScrollView]. Les rodes bloquejades venen
@@ -163,6 +164,7 @@ class _Wheel extends StatelessWidget {
                           : const FixedExtentScrollPhysics(),
                       onSelectedItemChanged: (_) {
                         HapticFeedback.selectionClick();
+                        Sfx.click();
                         onChanged();
                       },
                       childDelegate: ListWheelChildLoopingListDelegate(

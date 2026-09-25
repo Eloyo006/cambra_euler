@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme.dart';
 import 'screens/home_screen.dart';
 import 'state/game_state.dart';
+import 'state/settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,10 +51,13 @@ class _CambraAppState extends ConsumerState<CambraApp>
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: "La Cambra d'Euler",
-    debugShowCheckedModeBanner: false,
-    theme: buildTheme(),
-    home: const HomeScreen(),
-  );
+  Widget build(BuildContext context) {
+    ref.watch(soundProvider); // carrega la preferència de so
+    return MaterialApp(
+      title: "La Cambra d'Euler",
+      debugShowCheckedModeBanner: false,
+      theme: buildTheme(),
+      home: const HomeScreen(),
+    );
+  }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme.dart';
 import '../data/content.dart';
 import '../state/game_state.dart';
+import 'intro_screen.dart';
 import 'map_screen.dart';
 import 'victory_screen.dart';
 
@@ -12,7 +13,15 @@ class HomeScreen extends ConsumerWidget {
 
   Future<void> _enter(BuildContext context, WidgetRef ref) async {
     final game = ref.read(gameProvider.notifier);
-    final finished = ref.read(gameProvider).finished;
+    final s = ref.read(gameProvider);
+    final finished = s.finished;
+    // La primera vegada, la història d'Euler (el rellotge encara no corre).
+    if (!s.started) {
+      final go = await Navigator.of(
+        context,
+      ).push(MaterialPageRoute<bool>(builder: (_) => const IntroScreen()));
+      if (go != true || !context.mounted) return;
+    }
     if (!finished) game.start();
     await Navigator.of(context).push(
       MaterialPageRoute<void>(

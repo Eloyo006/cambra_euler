@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cambra_euler/data/content.dart';
 import 'helpers.dart';
 import 'package:cambra_euler/state/game_state.dart';
+import 'package:cambra_euler/state/ranking.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,6 +44,10 @@ void main() {
       expect(game.answer(finalPuzzle, solutionOf(s)), isTrue);
     }
     expect(c.read(gameProvider).finished, isTrue);
+    // La partida queda al rànquing.
+    final ranking = c.read(rankingProvider);
+    expect(ranking, hasLength(1));
+    expect(ranking.single.finishedAt, c.read(gameProvider).finishedAt);
   });
 
   test('pistes: +30, +60, +120 s i com a màxim 3', () async {

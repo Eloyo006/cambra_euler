@@ -45,7 +45,9 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
     });
     if (ref.read(gameProvider).finished) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const VictoryScreen()),
+        MaterialPageRoute<void>(
+          builder: (_) => const VictoryScreen(playDoor: true),
+        ),
         (route) => route.isFirst,
       );
     }

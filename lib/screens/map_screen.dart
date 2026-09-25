@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
+import '../state/settings.dart';
 import '../widgets/mod_clock.dart';
 import 'puzzle_screen.dart';
 import 'room_screen.dart';
@@ -19,7 +20,7 @@ class MapScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('El vestíbul'),
-        actions: const [ModClock(), SizedBox(width: 16)],
+        actions: const [SoundToggle(), ModClock(), SizedBox(width: 16)],
       ),
       body: SafeArea(
         child: ListView(

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/content.dart';
 import '../models/puzzle.dart';
+import 'ranking.dart';
 
 const String storageKey = 'cambra_euler_state_v1';
 
@@ -28,6 +29,7 @@ class GameState {
     this.started = false,
     this.finished = false,
     this.bookOpened = false,
+    this.finishedAt,
   });
 
   /// Passos resolts per puzle (id → nombre de passos encertats).
@@ -47,6 +49,9 @@ class GameState {
 
   /// Cert quan s'ha obert el llibre amagat de la Biblioteca.
   final bool bookOpened;
+
+  /// Quan es va acabar la partida (ISO 8601), o `null` si no s'ha acabat.
+  final String? finishedAt;
 
   /// Bonificació dels puzles opcionals resolts, en segons.
   int get bonus => puzzlesById.values
@@ -85,6 +90,7 @@ class GameState {
     bool? started,
     bool? finished,
     bool? bookOpened,
+    String? finishedAt,
   }) => GameState(
     progress: progress ?? this.progress,
     hints: hints ?? this.hints,
@@ -93,6 +99,7 @@ class GameState {
     started: started ?? this.started,
     finished: finished ?? this.finished,
     bookOpened: bookOpened ?? this.bookOpened,
+    finishedAt: finishedAt ?? this.finishedAt,
   );
 
   Map<String, dynamic> toJson() => {
@@ -103,6 +110,7 @@ class GameState {
     'started': started,
     'finished': finished,
     'bookOpened': bookOpened,
+    'finishedAt': finishedAt,
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
@@ -113,6 +121,7 @@ class GameState {
     started: j['started'] as bool? ?? false,
     finished: j['finished'] as bool? ?? false,
     bookOpened: j['bookOpened'] as bool? ?? false,
+    finishedAt: j['finishedAt'] as String?,
   );
 }
 
@@ -183,7 +192,21 @@ class GameNotifier extends Notifier<GameState> {
     final progress = {...state.progress, p.id: state.stepsDone(p) + 1};
     state = state.copyWith(progress: progress);
     if (p.id == finalPuzzle.id && state.isSolved(p)) {
-      state = state.copyWith(finished: true);
+      state = state.copyWith(
+        finished: true,
+        finishedAt: DateTime.now().toIso8601String(),
+      );
+      ref
+          .read(rankingProvider.notifier)
+          .add(
+            RankEntry(
+              total: state.total,
+              elapsed: state.elapsed,
+              penalty: state.penalty,
+              hints: state.totalHints,
+              finishedAt: state.finishedAt!,
+            ),
+          );
       pause();
     }
     _save();

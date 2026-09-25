@@ -298,11 +298,19 @@ void main() {
       expect(code, '53554');
       expect(secretBookText, contains("a és l'invers de 3; c·5 ≡ 4, a ℤ₇"));
       expect(secretBookUnlockedBy, '2.3');
-      expect(finalPuzzle.steps.map((s) => s.solutionLabel), [
-        '5',
-        '5',
-        '53554',
-      ]);
+      expect(finalPuzzle.steps[0].check('5'), isTrue);
+      expect(finalPuzzle.steps[1].check('5'), isTrue);
+      final lock = finalPuzzle.steps[2] as WheelLockStep;
+      expect(lock.solution!.join(), '53554');
+      expect(lock.check(code.split('')), isTrue);
+      // Rodes de 1 a 7 (notació del PDF), amb les posicions 2, 4 i 5 fixes.
+      expect(lock.symbols, ['1', '2', '3', '4', '5', '6', '7']);
+      expect(lock.locked, [1, 3, 4]);
+      // Les rodes fixes són les xifres que donen les sales.
+      for (final r in rooms) {
+        expect(lock.solution![r.digitPosition - 1], '${r.digit}');
+        expect(lock.locked, contains(r.digitPosition - 1));
+      }
     });
   });
 }

@@ -130,6 +130,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
                 key: ValueKey('${_puzzle.id}-$done'),
                 step: _puzzle.steps[done],
                 onAnswer: _answer,
+                hintsUsed: hintsUsed,
               ),
             if (_success != null)
               Padding(

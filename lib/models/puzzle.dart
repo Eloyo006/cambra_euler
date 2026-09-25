@@ -43,16 +43,37 @@ class CodeStep extends PuzzleStep {
       s.replaceAll(RegExp(r'[\s\-_]'), '').toUpperCase();
 }
 
+/// Ajuda visual que acompanya un [TextStep].
+enum StepAid {
+  none,
+
+  /// Roda de César: dos discos concèntrics amb l'alfabet de 27 lletres.
+  caesarWheel,
+
+  /// Taula x → 2x + 3 (mod 27) per al xifrat afí.
+  affineTable,
+}
+
 /// Resposta de text lliure. Resposta: `String`.
 class TextStep extends PuzzleStep {
   const TextStep({
     required super.prompt,
     required this.accepted,
+    this.aid = StepAid.none,
+    this.aidMinHints = 0,
     super.success,
   });
 
   /// Respostes acceptades. La primera és l'«oficial».
   final List<String> accepted;
+
+  final StepAid aid;
+
+  /// Pistes que cal haver obert perquè es vegi l'ajuda (0 = sempre).
+  final int aidMinHints;
+
+  bool showsAid(int hintsUsed) =>
+      aid != StepAid.none && hintsUsed >= aidMinHints;
 
   @override
   bool check(Object answer) =>
@@ -104,14 +125,21 @@ class TableStep extends PuzzleStep {
   const TableStep({
     required super.prompt,
     required this.modulus,
-    required this.prefilled,
+    this.mode = TableMode.fill,
+    this.prefilled = const [],
+    this.markValue = 1,
     super.success,
   });
 
   final int modulus;
+  final TableMode mode;
 
-  /// Índexs (fila·n + columna) de les caselles que ja venen escrites.
+  /// Índexs (fila·n + columna) de les caselles que ja venen escrites
+  /// (només en mode [TableMode.fill]).
   final List<int> prefilled;
+
+  /// Valor que cal marcar en mode [TableMode.markCells].
+  final int markValue;
 
   int cell(int row, int col) => toProfNotation((row + 1) * (col + 1), modulus);
 
@@ -120,20 +148,67 @@ class TableStep extends PuzzleStep {
       for (var c = 0; c < modulus; c++) cell(r, c),
   ];
 
+  /// Índexs de les caselles que valen [markValue].
+  Set<int> get markedCells => {
+    for (var i = 0; i < modulus * modulus; i++)
+      if (solution[i] == markValue) i,
+  };
+
+  /// Elements de {1, …, n} que tenen invers.
+  Set<int> get invertibles => {
+    for (var x = 1; x <= modulus; x++)
+      if (inverse(x, modulus) != null) x,
+  };
+
+  /// La resposta correcta en el format que espera [check].
+  Object get expectedAnswer => switch (mode) {
+    TableMode.fill => solution,
+    TableMode.markCells => markedCells,
+    TableMode.pickInvertible => invertibles,
+  };
+
   @override
   bool check(Object answer) {
-    if (answer is! List<int> || answer.length != modulus * modulus) {
-      return false;
+    switch (mode) {
+      case TableMode.fill:
+        if (answer is! List<int> || answer.length != modulus * modulus) {
+          return false;
+        }
+        final s = solution;
+        for (var i = 0; i < s.length; i++) {
+          if (answer[i] != s[i]) return false;
+        }
+        return true;
+      case TableMode.markCells:
+      case TableMode.pickInvertible:
+        final expected = expectedAnswer as Set<int>;
+        return answer is Set<int> &&
+            answer.length == expected.length &&
+            answer.containsAll(expected);
     }
-    final s = solution;
-    for (var i = 0; i < s.length; i++) {
-      if (answer[i] != s[i]) return false;
-    }
-    return true;
   }
 
   @override
-  String get solutionLabel => 'Taula de ℤ$modulus completa';
+  String get solutionLabel => switch (mode) {
+    TableMode.fill => 'Taula de ℤ$modulus completa',
+    TableMode.markCells => 'Productes que donen $markValue: ${_markedPairs()}',
+    TableMode.pickInvertible => (invertibles.toList()..sort()).join(' i '),
+  };
+
+  String _markedPairs() => [
+    for (final i in markedCells) '${i ~/ modulus + 1}·${i % modulus + 1}',
+  ].join(', ');
+}
+
+enum TableMode {
+  /// Omplir les caselles buides. Resposta: `List<int>` (n·n valors).
+  fill,
+
+  /// Marcar les caselles que valen `markValue`. Resposta: `Set<int>` d'índexs.
+  markCells,
+
+  /// Tocar els elements que tenen invers. Resposta: `Set<int>` d'elements.
+  pickInvertible,
 }
 
 /// Diagrama de Venn de dos conjunts. Resposta: `List<int>` amb
@@ -355,29 +430,44 @@ class WheelLockStep extends PuzzleStep {
     required super.prompt,
     required this.symbols,
     required this.solution,
+    this.wheelCount,
     this.locked = const [],
+    this.offerNoSolution = false,
     super.success,
-  });
+  }) : assert(solution != null || wheelCount != null);
+
+  /// Resposta que envia el botó «No té solució».
+  static const String noSolution = '∅';
 
   final List<String> symbols;
-  final List<String> solution;
+
+  /// Combinació correcta, o `null` si el pany no té solució.
+  final List<String>? solution;
+
+  /// Nombre de rodes quan no hi ha solució.
+  final int? wheelCount;
 
   /// Posicions (0-based) de les rodes bloquejades.
   final List<int> locked;
 
+  /// Mostra el botó «No té solució».
+  final bool offerNoSolution;
+
+  int get wheels => solution?.length ?? wheelCount!;
+
   @override
   bool check(Object answer) {
-    if (answer is! List<String> || answer.length != solution.length) {
-      return false;
-    }
-    for (var i = 0; i < solution.length; i++) {
-      if (answer[i] != solution[i]) return false;
+    final s = solution;
+    if (s == null) return answer == noSolution;
+    if (answer is! List<String> || answer.length != s.length) return false;
+    for (var i = 0; i < s.length; i++) {
+      if (answer[i] != s[i]) return false;
     }
     return true;
   }
 
   @override
-  String get solutionLabel => solution.join(' ');
+  String get solutionLabel => solution?.join(' ') ?? 'No té solució';
 }
 
 // ───────────────────────────── Puzles i sales ─────────────────────────────

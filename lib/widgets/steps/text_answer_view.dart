@@ -8,10 +8,14 @@ class TextAnswerView extends StatefulWidget {
     super.key,
     required this.numeric,
     required this.onSubmit,
+    this.aid,
   });
 
   final bool numeric;
   final SubmitAnswer onSubmit;
+
+  /// Ajuda visual opcional que es mostra damunt del camp.
+  final Widget? aid;
 
   @override
   State<TextAnswerView> createState() => _TextAnswerViewState();
@@ -30,6 +34,7 @@ class _TextAnswerViewState extends State<TextAnswerView> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      if (widget.aid != null) ...[widget.aid!, const SizedBox(height: 12)],
       TextField(
         controller: _controller,
         keyboardType: widget.numeric

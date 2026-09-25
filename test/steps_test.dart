@@ -60,6 +60,79 @@ void main() {
     });
   });
 
+  group('TableStep (modes)', () {
+    const mark = TableStep(prompt: '', modulus: 5, mode: TableMode.markCells);
+    const pick = TableStep(
+      prompt: '',
+      modulus: 6,
+      mode: TableMode.pickInvertible,
+    );
+    test('marcar els 1: exactament les caselles que valen 1', () {
+      expect(mark.markedCells, {0, 7, 11, 18});
+      expect(mark.check({0, 7, 11, 18}), isTrue);
+      expect(mark.check({0, 7, 11}), isFalse);
+      expect(mark.check({0, 7, 11, 18, 24}), isFalse);
+      expect(mark.check([0, 7, 11, 18]), isFalse);
+    });
+    test('invertibles de ℤ₆ = {1, 5}', () {
+      expect(pick.check({5, 1}), isTrue);
+      expect(pick.check({1}), isFalse);
+      expect(pick.check({1, 5, 6}), isFalse);
+      expect(pick.solutionLabel, '1 i 5');
+    });
+    test('invertibles de ℤ₅ i ℤ₇: tots menys n', () {
+      const z5 = TableStep(
+        prompt: '',
+        modulus: 5,
+        mode: TableMode.pickInvertible,
+      );
+      const z7 = TableStep(
+        prompt: '',
+        modulus: 7,
+        mode: TableMode.pickInvertible,
+      );
+      expect(z5.invertibles, {1, 2, 3, 4});
+      expect(z7.invertibles, {1, 2, 3, 4, 5, 6});
+    });
+  });
+
+  group('WheelLockStep sense solució', () {
+    const s = WheelLockStep(
+      prompt: '',
+      symbols: ['1', '2', '3', '4', '5', '6'],
+      solution: null,
+      wheelCount: 1,
+      offerNoSolution: true,
+    );
+    test('només el botó «No té solució» és correcte', () {
+      expect(s.check(WheelLockStep.noSolution), isTrue);
+      for (final v in s.symbols) {
+        expect(s.check([v]), isFalse);
+      }
+      expect(s.wheels, 1);
+    });
+    test('amb solució, «No té solució» és incorrecte', () {
+      const t = WheelLockStep(prompt: '', symbols: ['0', '1'], solution: ['1']);
+      expect(t.check(WheelLockStep.noSolution), isFalse);
+    });
+  });
+
+  group('TextStep amb ajuda', () {
+    test('l\x27ajuda afí es desbloqueja amb la pista 2', () {
+      const s = TextStep(
+        prompt: '',
+        accepted: ['LIBRO'],
+        aid: StepAid.affineTable,
+        aidMinHints: 2,
+      );
+      expect(s.showsAid(0), isFalse);
+      expect(s.showsAid(1), isFalse);
+      expect(s.showsAid(2), isTrue);
+      const plain = TextStep(prompt: '', accepted: ['x']);
+      expect(plain.showsAid(3), isFalse);
+    });
+  });
+
   group('VennStep', () {
     const s = VennStep(prompt: '', regions: [18, 7, 11, 4]);
     test('accepta les quatre regions correctes', () {

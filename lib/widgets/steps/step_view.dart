@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme.dart';
+import '../../data/content.dart';
 import '../../models/puzzle.dart';
+import '../aids/affine_table.dart';
+import '../aids/caesar_wheel.dart';
 import '../feedback.dart';
 import 'choice_step_view.dart';
 import 'expression_step_view.dart';
@@ -24,9 +27,17 @@ typedef RejectAction = void Function(String message);
 /// Mostra el pas actual amb el widget que li toca i el feedback comú:
 /// sacsejada i missatge si falla, vibració si l'encerta.
 class StepView extends StatefulWidget {
-  const StepView({super.key, required this.step, required this.onAnswer});
+  const StepView({
+    super.key,
+    required this.step,
+    required this.onAnswer,
+    this.hintsUsed = 0,
+  });
 
   final PuzzleStep step;
+
+  /// Pistes obertes del puzle (algunes ajudes es desbloquegen amb pistes).
+  final int hintsUsed;
 
   /// Retorna si la resposta és correcta (normalment `GameNotifier.answer`).
   final bool Function(Object answer) onAnswer;
@@ -54,11 +65,38 @@ class _StepViewState extends State<StepView> {
     _shake.currentState?.shake();
   }
 
+  Widget? _aidFor(TextStep s) {
+    if (s.aid == StepAid.none) return null;
+    if (!s.showsAid(widget.hintsUsed)) {
+      return Row(
+        children: [
+          const Icon(Icons.lock_outline, size: 18, color: AppColors.gold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "Hi ha una taula d'ajuda: es desbloqueja amb la pista "
+              '${s.aidMinHints} («${hintLabels[s.aidMinHints - 1]}»).',
+            ),
+          ),
+        ],
+      );
+    }
+    return switch (s.aid) {
+      StepAid.caesarWheel => const CaesarWheel(),
+      StepAid.affineTable => const AffineTable(),
+      StepAid.none => null,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final body = switch (widget.step) {
       CodeStep() => TextAnswerView(numeric: true, onSubmit: _submit),
-      TextStep() => TextAnswerView(numeric: false, onSubmit: _submit),
+      TextStep s => TextAnswerView(
+        numeric: false,
+        onSubmit: _submit,
+        aid: _aidFor(s),
+      ),
       ChoiceStep s => ChoiceStepView(step: s, onSubmit: _submit),
       TableStep s => TableStepView(
         step: s,

@@ -15,7 +15,7 @@ Object solutionOf(PuzzleStep step) => switch (step) {
   CodeStep s => s.solution,
   TextStep s => s.accepted.first,
   ChoiceStep s => s.correctIndex,
-  TableStep s => s.solution,
+  TableStep s => s.expectedAnswer,
   VennStep s => s.regions,
   ExpressionStep s => s.solution,
   PartitionStep s =>
@@ -27,5 +27,5 @@ Object solutionOf(PuzzleStep step) => switch (step) {
   OrderStep s => [for (var i = 0; i < s.lines.length; i++) i],
   HanoiStep s => hanoiSolution(s.discs),
   TapLineStep s => s.wrongLine,
-  WheelLockStep s => s.solution,
+  WheelLockStep s => s.solution ?? WheelLockStep.noSolution,
 };

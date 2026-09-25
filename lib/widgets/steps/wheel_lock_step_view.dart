@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme.dart';
 import '../../models/puzzle.dart';
 import 'step_view.dart';
 
-/// Versió base: rodes amb botons amunt/avall. Les bloquejades venen fixades.
-/// (Les rodes amb ListWheelScrollView arriben a la Fase 4.)
+/// Pany de rodes fet amb [ListWheelScrollView]. Les rodes bloquejades venen
+/// fixades. Opcionalment hi ha un botó «No té solució».
 class WheelLockStepView extends StatefulWidget {
   const WheelLockStepView({
     super.key,
@@ -21,21 +22,44 @@ class WheelLockStepView extends StatefulWidget {
 }
 
 class _WheelLockStepViewState extends State<WheelLockStepView> {
-  late final List<int> _index = [
-    for (var i = 0; i < widget.step.solution.length; i++)
-      widget.step.locked.contains(i)
-          ? widget.step.symbols.indexOf(widget.step.solution[i])
-          : 0,
+  late final List<FixedExtentScrollController> _controllers = [
+    for (var i = 0; i < widget.step.wheels; i++)
+      FixedExtentScrollController(initialItem: _initialIndex(i)),
   ];
 
-  void _turn(int wheel, int delta) => setState(() {
+  int _initialIndex(int wheel) {
+    final s = widget.step.solution;
+    if (s != null && widget.step.locked.contains(wheel)) {
+      return widget.step.symbols.indexOf(s[wheel]);
+    }
+    return 0;
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  String _symbolAt(int wheel) {
     final n = widget.step.symbols.length;
-    _index[wheel] = (_index[wheel] + delta) % n;
-  });
+    return widget.step.symbols[_controllers[wheel].selectedItem % n];
+  }
+
+  void _turn(int wheel, int delta) {
+    final c = _controllers[wheel];
+    c.animateToItem(
+      c.selectedItem + delta,
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final symbols = widget.step.symbols;
+    final step = widget.step;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -43,22 +67,32 @@ class _WheelLockStepViewState extends State<WheelLockStepView> {
           alignment: WrapAlignment.center,
           spacing: 4,
           children: [
-            for (var w = 0; w < _index.length; w++)
+            for (var w = 0; w < step.wheels; w++)
               _Wheel(
-                symbol: symbols[_index[w]],
-                locked: widget.step.locked.contains(w),
+                controller: _controllers[w],
+                symbols: step.symbols,
+                locked: step.locked.contains(w),
                 position: w + 1,
-                onUp: () => _turn(w, 1),
-                onDown: () => _turn(w, -1),
+                onTurn: (d) => _turn(w, d),
+                onChanged: () => setState(() {}),
               ),
           ],
         ),
         const SizedBox(height: 12),
         FilledButton(
-          onPressed: () =>
-              widget.onSubmit([for (final i in _index) symbols[i]]),
+          onPressed: () => widget.onSubmit([
+            for (var w = 0; w < step.wheels; w++) _symbolAt(w),
+          ]),
           child: const Text('Obre el pany'),
         ),
+        if (step.offerNoSolution) ...[
+          const SizedBox(height: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(alignment: Alignment.center),
+            onPressed: () => widget.onSubmit(WheelLockStep.noSolution),
+            child: const Text('No té solució'),
+          ),
+        ],
       ],
     );
   }
@@ -66,57 +100,103 @@ class _WheelLockStepViewState extends State<WheelLockStepView> {
 
 class _Wheel extends StatelessWidget {
   const _Wheel({
-    required this.symbol,
+    required this.controller,
+    required this.symbols,
     required this.locked,
     required this.position,
-    required this.onUp,
-    required this.onDown,
+    required this.onTurn,
+    required this.onChanged,
   });
 
-  final String symbol;
+  final FixedExtentScrollController controller;
+  final List<String> symbols;
   final bool locked;
   final int position;
-  final VoidCallback onUp;
-  final VoidCallback onDown;
+  final void Function(int delta) onTurn;
+  final VoidCallback onChanged;
+
+  static const double _itemExtent = 44;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Roda $position: $symbol${locked ? ', bloquejada' : ''}',
-    child: SizedBox(
-      width: 52,
-      child: Column(
-        children: [
-          IconButton(
-            onPressed: locked ? null : onUp,
-            icon: const Icon(Icons.keyboard_arrow_up),
-          ),
-          Container(
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.ink,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: locked
-                    ? AppColors.chalk.withValues(alpha: 0.3)
-                    : AppColors.gold,
+  Widget build(BuildContext context) {
+    final current = controller.hasClients
+        ? symbols[controller.selectedItem % symbols.length]
+        : symbols[controller.initialItem % symbols.length];
+    return Semantics(
+      label: 'Roda $position: $current${locked ? ', bloquejada' : ''}',
+      child: SizedBox(
+        width: 54,
+        child: Column(
+          children: [
+            IconButton(
+              tooltip: 'Puja la roda $position',
+              onPressed: locked ? null : () => onTurn(-1),
+              icon: const Icon(Icons.keyboard_arrow_up),
+            ),
+            Container(
+              height: _itemExtent * 3,
+              decoration: BoxDecoration(
+                color: AppColors.ink,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: locked
+                      ? AppColors.chalk.withValues(alpha: 0.3)
+                      : AppColors.gold,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  // Franja central que marca el valor seleccionat.
+                  Center(
+                    child: Container(
+                      height: _itemExtent,
+                      color: AppColors.gold.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  ExcludeSemantics(
+                    child: ListWheelScrollView.useDelegate(
+                      controller: controller,
+                      itemExtent: _itemExtent,
+                      diameterRatio: 1.4,
+                      physics: locked
+                          ? const NeverScrollableScrollPhysics()
+                          : const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: (_) {
+                        HapticFeedback.selectionClick();
+                        onChanged();
+                      },
+                      childDelegate: ListWheelChildLoopingListDelegate(
+                        children: [
+                          for (final s in symbols)
+                            Center(
+                              child: Text(
+                                s,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: locked
+                                      ? AppColors.chalk.withValues(alpha: 0.6)
+                                      : AppColors.gold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Text(
-              symbol,
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: AppColors.gold,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: locked ? null : onDown,
-            icon: Icon(locked ? Icons.lock : Icons.keyboard_arrow_down),
-          ),
-        ],
+            locked
+                ? const SizedBox(height: 48, child: Icon(Icons.lock, size: 20))
+                : IconButton(
+                    tooltip: 'Baixa la roda $position',
+                    onPressed: () => onTurn(1),
+                    icon: const Icon(Icons.keyboard_arrow_down),
+                  ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

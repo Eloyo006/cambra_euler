@@ -180,22 +180,48 @@ const List<Room> rooms = [
             "Un element x té invers a ℤₙ si existeix y amb x·y ≡ 1 (mod n). "
             "A la taula, busca on surt un 1.",
         steps: [
-          CodeStep(prompt: 'Quin és l\'invers de 2 a ℤ₅?', solution: '3'),
-          ChoiceStep(
-            prompt: 'A ℤ₆ = {1, …, 6}, quins elements tenen invers?',
-            options: ['Tots menys el 6', '1, 3 i 5', '1 i 5', 'Només l\'1'],
-            correctIndex: 2,
+          TableStep(
+            prompt:
+                'Completa la taula de ℤ₅: toca una casella buida i tria el '
+                'valor al teclat. Recorda que 5 ≡ 0.',
+            modulus: 5,
+            // Caselles que ja venen escrites al PDF (fila·5 + columna, des de 0):
+            // fila 1: col 2 · fila 2: col 1, 3, 4, 5 · fila 3: col 4 ·
+            // fila 4: col 1, 3, 4.
+            prefilled: [1, 5, 7, 8, 9, 13, 15, 17, 18],
           ),
-          ChoiceStep(
-            prompt: 'Resol 2x ≡ 1 (mod 6).',
-            options: ['x = 3', 'x = 4', 'x = 5', 'No té solució'],
-            correctIndex: 3,
+          TableStep(
+            prompt:
+                'Ara marca totes les caselles on surt un 1. Cada una és una '
+                'parella d\'inversos.',
+            modulus: 5,
+            mode: TableMode.markCells,
+          ),
+          CodeStep(prompt: 'Quin és l\'invers de 2 a ℤ₅?', solution: '3'),
+          TableStep(
+            prompt:
+                'Aquesta és la taula de ℤ₆ = {1, …, 6}. Toca els elements '
+                'que tenen invers.',
+            modulus: 6,
+            mode: TableMode.pickInvertible,
+          ),
+          WheelLockStep(
+            prompt:
+                'L\'últim cadenat demana x amb 2x ≡ 1 (mod 6). Gira la roda '
+                'o, si creus que no n\'hi ha cap, prem «No té solució».',
+            symbols: ['1', '2', '3', '4', '5', '6'],
+            solution: null,
+            wheelCount: 1,
+            offerNoSolution: true,
           ),
         ],
         hints: [
-          "Multiplica 2 per 1, 2, 3, 4 i 5 i mira el residu en dividir per 5.",
-          "x té invers mòdul n només si mcd(x, n) = 1.",
-          "2·3 = 6 ≡ 1 (mod 5). A ℤ₆, 2x sempre és parell i no pot ser ≡ 1.",
+          "Multiplica cada fila per cada columna i queda't amb el residu en "
+              "dividir per 5 (si dona 0, escriu 5).",
+          "x té invers a ℤₙ si a la seva fila de la taula hi surt un 1. "
+              "Això passa quan mcd(x, n) = 1.",
+          "2·3 = 6 ≡ 1 (mod 5). A ℤ₆, només les files de l'1 i del 5 tenen "
+              "un 1. I 2x sempre és parell: mai no pot ser ≡ 1 (mod 6).",
         ],
       ),
       Puzzle(
@@ -206,17 +232,22 @@ const List<Room> rooms = [
             "Dos cadenats tanquen l'armari del rellotger. Totes les "
             "condicions són mòdul 5.",
         steps: [
-          CodeStep(
+          WheelLockStep(
             prompt:
                 'Primer pany: el codi abcd té la forma 4x1y, amb '
-                '3b ≡ c i 2a ≡ d (mod 5). Quin és el codi?',
-            solution: '4213',
+                '3b ≡ c i 2a ≡ d (mod 5). Gira les rodes lliures.',
+            symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            solution: ['4', '2', '1', '3'],
+            locked: [0, 2],
           ),
-          TextStep(
+          WheelLockStep(
             prompt:
                 'Segon pany: vocals a=0, e=1, i=2, o=3, u=4. El codi és '
                 'eoiX, amb 3X ≡ 1 (mod 5). Quina vocal és X?',
-            accepted: ['i'],
+            symbols: ['a', 'e', 'i', 'o', 'u'],
+            solution: ['e', 'o', 'i', 'i'],
+            locked: [0, 1, 2],
+            success: 'X = i, i és l\'única: 3 té un sol invers mòdul 5.',
           ),
         ],
         hints: [
@@ -240,8 +271,11 @@ const List<Room> rooms = [
           TextStep(
             prompt:
                 'El missatge ERP_GLD s\'ha xifrat amb César, '
-                'e(x) = x + 3 (mod 27). Què diu?',
+                'e(x) = x + 3 (mod 27). Gira el disc interior fins al '
+                'desplaçament correcte, busca cada lletra xifrada al disc '
+                'interior i llegeix la de fora. Què diu?',
             accepted: ['BON DIA'],
+            aid: StepAid.caesarWheel,
           ),
           ChoiceStep(
             prompt:
@@ -261,13 +295,16 @@ const List<Room> rooms = [
                 'e(x) = 2x + 3 (mod 27). L\'invers de 2 mòdul 27 és 14. '
                 'Què diu?',
             accepted: ['LIBRO'],
+            aid: StepAid.affineTable,
+            aidMinHints: 2,
           ),
         ],
         hints: [
           "Per desfer x + 3, resta 3 a cada lletra. Per desfer 2x + 3, primer "
               "resta 3 i després multiplica per l'invers de 2.",
           "Si a no té invers mòdul n, e(x) = ax + b no és injectiva: dues "
-              "lletres diferents van a parar a la mateixa.",
+              "lletres diferents van a parar a la mateixa. (S'ha desbloquejat "
+              "la taula x → 2x + 3 a l'últim missatge.)",
           "x = 14·(y − 3) mod 27. Y = 25 → 14·22 = 308 ≡ 11 = L.",
         ],
         outro:

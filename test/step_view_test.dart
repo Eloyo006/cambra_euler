@@ -36,6 +36,7 @@ Future<List<Object>> pumpStep(
   WidgetTester tester,
   PuzzleStep step, {
   bool result = false,
+  int hintsUsed = 0,
 }) async {
   tester.view.physicalSize = const Size(360, 800);
   tester.view.devicePixelRatio = 1;
@@ -50,6 +51,7 @@ Future<List<Object>> pumpStep(
           children: [
             StepView(
               step: step,
+              hintsUsed: hintsUsed,
               onAnswer: (a) {
                 answers.add(a);
                 return result;
@@ -144,6 +146,8 @@ void main() {
     expect(find.widgetWithText(AlertDialog, 'A ∩ B'), findsOneWidget);
   });
 
+  sala2Tests();
+
   testWidgets('Prestatgeria: tocar llibre i caixa, i arrossegar', (
     tester,
   ) async {
@@ -182,5 +186,138 @@ void main() {
         {6},
       ],
     ]);
+  });
+}
+
+void sala2Tests() {
+  testWidgets('Rodes: les fletxes giren la roda i s\'envia la combinació', (
+    tester,
+  ) async {
+    const lock = WheelLockStep(
+      prompt: 'Pany',
+      symbols: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+      solution: ['4', '2', '1', '3'],
+      locked: [0, 2],
+    );
+    final answers = await pumpStep(tester, lock, result: true);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byTooltip('Baixa la roda 2'));
+      await tester.pumpAndSettle();
+    }
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byTooltip('Baixa la roda 4'));
+      await tester.pumpAndSettle();
+    }
+    // Les rodes bloquejades no tenen fletxes.
+    expect(find.byTooltip('Baixa la roda 1'), findsNothing);
+    await tester.tap(find.text('Obre el pany'));
+    await tester.pumpAndSettle();
+    expect(answers, [
+      ['4', '2', '1', '3'],
+    ]);
+  });
+
+  testWidgets('Rodes: el botó «No té solució»', (tester) async {
+    const lock = WheelLockStep(
+      prompt: '2x ≡ 1 (mod 6)',
+      symbols: ['1', '2', '3', '4', '5', '6'],
+      solution: null,
+      wheelCount: 1,
+      offerNoSolution: true,
+    );
+    final answers = await pumpStep(tester, lock, result: true);
+    await tester.tap(find.text('No té solució'));
+    await tester.pumpAndSettle();
+    expect(answers, [WheelLockStep.noSolution]);
+  });
+
+  testWidgets('Taula: marcar caselles envia els índexs', (tester) async {
+    const step = TableStep(
+      prompt: 'Marca',
+      modulus: 5,
+      mode: TableMode.markCells,
+    );
+    final answers = await pumpStep(tester, step, result: true);
+    for (final (r, c) in [(1, 1), (2, 3), (3, 2), (4, 4)]) {
+      await tester.tap(find.bySemanticsLabel('$r per $c: 1'));
+      await tester.pump();
+    }
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [
+      {0, 7, 11, 18},
+    ]);
+  });
+
+  testWidgets('Taula: omplir amb el teclat', (tester) async {
+    const step = TableStep(prompt: 'Omple', modulus: 5, prefilled: [0]);
+    final answers = await pumpStep(tester, step, result: true);
+    // Omple totes les caselles buides amb el valor correcte.
+    for (var i = 1; i < 25; i++) {
+      final r = i ~/ 5 + 1, c = i % 5 + 1;
+      await tester.tap(find.bySemanticsLabel('$r per $c: buida'));
+      await tester.pump();
+      final v = step.cell(r - 1, c - 1);
+      await tester.tap(find.widgetWithText(OutlinedButton, '$v'));
+      await tester.pump();
+    }
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [step.solution]);
+  });
+
+  testWidgets('Taula de ℤ₆: triar els elements amb invers', (tester) async {
+    const step = TableStep(
+      prompt: 'Invers',
+      modulus: 6,
+      mode: TableMode.pickInvertible,
+    );
+    final answers = await pumpStep(tester, step, result: true);
+    await tester.tap(find.bySemanticsLabel('Element 1'));
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Element 5'));
+    await tester.pump();
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [
+      {1, 5},
+    ]);
+  });
+
+  testWidgets('Roda de César: els botons canvien el desplaçament', (
+    tester,
+  ) async {
+    const step = TextStep(
+      prompt: 'César',
+      accepted: ['BON DIA'],
+      aid: StepAid.caesarWheel,
+    );
+    await pumpStep(tester, step);
+    expect(find.textContaining('Desplaçament: 0'), findsOneWidget);
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byTooltip('Gira el disc interior endavant'));
+      await tester.pump();
+    }
+    expect(find.text('Desplaçament: 3  ·  A → D'), findsOneWidget);
+    await tester.tap(find.byTooltip('Gira el disc interior enrere'));
+    await tester.pump();
+    expect(find.textContaining('Desplaçament: 2'), findsOneWidget);
+  });
+
+  testWidgets('Taula afí: bloquejada fins a la pista 2', (tester) async {
+    const step = TextStep(
+      prompt: 'Afí',
+      accepted: ['LIBRO'],
+      aid: StepAid.affineTable,
+      aidMinHints: 2,
+    );
+    await pumpStep(tester, step, hintsUsed: 1);
+    expect(find.text('L → Y'), findsNothing);
+    expect(
+      find.textContaining('es desbloqueja amb la pista 2'),
+      findsOneWidget,
+    );
+    await pumpStep(tester, step, hintsUsed: 2);
+    expect(find.text('L → Y'), findsOneWidget);
   });
 }

@@ -118,9 +118,14 @@ void main() {
         [1, 5],
       );
       expect(solveLinear(2, 1, 6), isEmpty);
-      expect(p('2.1').steps[0].check('3'), isTrue);
-      expect(p('2.1').steps[1].solutionLabel, '1 i 5');
-      expect(p('2.1').steps[2].solutionLabel, 'No té solució');
+      final s = p('2.1').steps;
+      expect(s[2].check('3'), isTrue);
+      expect(s[3].solutionLabel, '1 i 5');
+      expect(s[3].check({1, 5}), isTrue);
+      expect(s[3].check({1, 3, 5}), isFalse);
+      expect(s[4].solutionLabel, 'No té solució');
+      expect(s[4].check(WheelLockStep.noSolution), isTrue);
+      expect(s[4].check(['3']), isFalse);
     });
 
     test('2.1 taula mod 5: caselles pre-emplenades del PDF', () {
@@ -129,6 +134,32 @@ void main() {
       expect([cell(2, 1), cell(2, 3), cell(2, 4), cell(2, 5)], [2, 1, 3, 5]);
       expect(cell(3, 4), 2);
       expect([cell(4, 1), cell(4, 3), cell(4, 4)], [4, 2, 1]);
+
+      // El TableStep pre-emplena exactament aquestes caselles.
+      final table = p('2.1').steps[0] as TableStep;
+      final pairs = [for (final i in table.prefilled) (i ~/ 5 + 1, i % 5 + 1)];
+      expect(pairs, [
+        (1, 2),
+        (2, 1),
+        (2, 3),
+        (2, 4),
+        (2, 5),
+        (3, 4),
+        (4, 1),
+        (4, 3),
+        (4, 4),
+      ]);
+      for (final (r, c) in pairs) {
+        expect(table.cell(r - 1, c - 1), cell(r, c));
+      }
+      expect(table.check(table.solution), isTrue);
+
+      // Les caselles amb 1 són les parelles d'inversos de ℤ₅.
+      final ones = p('2.1').steps[1] as TableStep;
+      expect(
+        {for (final i in ones.markedCells) (i ~/ 5 + 1, i % 5 + 1)},
+        {(1, 1), (2, 3), (3, 2), (4, 4)},
+      );
     });
 
     test('2.2 codi 4x1y → 4213 i vocal X = i', () {
@@ -137,14 +168,17 @@ void main() {
       expect(bs, [2]);
       final d = mod(2 * a, 5);
       expect('$a${bs.single}$c$d', '4213');
-      expect(p('2.2').steps[0].check('4213'), isTrue);
-      expect(p('2.2').steps[0].check('4 2 1 3'), isTrue);
+      expect(p('2.2').steps[0].check(['4', '2', '1', '3']), isTrue);
+      expect(p('2.2').steps[0].solutionLabel.replaceAll(' ', ''), '4213');
 
       final xs = solveLinear(3, 1, 5);
       expect(xs, [2]); // única
       expect('aeiou'[xs.single], 'i');
-      expect(p('2.2').steps[1].check('i'), isTrue);
-      expect(p('2.2').steps[1].check('I'), isTrue);
+      expect(p('2.2').steps[1].check(['e', 'o', 'i', 'i']), isTrue);
+      // Única: cap altra vocal obre el pany.
+      for (final v in ['a', 'e', 'o', 'u']) {
+        expect(p('2.2').steps[1].check(['e', 'o', 'i', v]), isFalse);
+      }
     });
 
     test('2.3 César x+3: ERP_GLD → BON DIA', () {

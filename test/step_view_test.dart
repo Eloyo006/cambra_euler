@@ -1,8 +1,11 @@
 import 'package:cambra_euler/core/theme.dart';
 import 'package:cambra_euler/models/puzzle.dart';
+import 'package:cambra_euler/widgets/celebrations.dart';
 import 'package:cambra_euler/widgets/steps/step_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'helpers.dart';
 
 /// Un pas de cada tipus, amb dades semblants a les del joc.
 const allSteps = <PuzzleStep>[
@@ -147,6 +150,7 @@ void main() {
   });
 
   sala2Tests();
+  sala3Tests();
 
   testWidgets('Prestatgeria: tocar llibre i caixa, i arrossegar', (
     tester,
@@ -319,5 +323,84 @@ void sala2Tests() {
     );
     await pumpStep(tester, step, hintsUsed: 2);
     expect(find.text('L → Y'), findsOneWidget);
+  });
+}
+
+void sala3Tests() {
+  testWidgets('Ordenar: arrossegar una línia la canvia de lloc', (
+    tester,
+  ) async {
+    const step = OrderStep(
+      prompt: 'Ordena',
+      lines: ['primera', 'segona', 'tercera'],
+      initialOrder: [1, 0, 2],
+    );
+    final answers = await pumpStep(tester, step, result: true);
+    // Arrossega «segona» (primera posició) per sota de «primera».
+    final handle = find.byIcon(Icons.drag_handle).first;
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(const Duration(milliseconds: 100));
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, 8));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Comprova'));
+    await tester.pumpAndSettle();
+    expect(answers, [
+      [0, 1, 2],
+    ]);
+  });
+
+  testWidgets('Hanoi amb 3 discos: la solució mínima s\'envia sola', (
+    tester,
+  ) async {
+    const step = HanoiStep(prompt: 'Hanoi', discs: 3);
+    final answers = await pumpStep(tester, step, result: true);
+    final pegs = find.bySemanticsLabel(RegExp('^Agulla'));
+    for (final (from, to) in hanoiSolution(3)) {
+      await tester.tap(pegs.at(from));
+      await tester.pump();
+      await tester.tap(pegs.at(to));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(answers, [hanoiSolution(3)]);
+  });
+
+  testWidgets('Hanoi: si sobren moviments, cal tornar-hi', (tester) async {
+    const step = HanoiStep(prompt: 'Hanoi', discs: 3);
+    final answers = await pumpStep(tester, step, result: true);
+    final pegs = find.bySemanticsLabel(RegExp('^Agulla'));
+    for (final (from, to) in [(0, 1), (1, 0), ...hanoiSolution(3)]) {
+      await tester.tap(pegs.at(from));
+      await tester.pump();
+      await tester.tap(pegs.at(to));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(answers, isEmpty);
+    expect(find.textContaining('Ho has aconseguit en 9'), findsOneWidget);
+    expect(find.textContaining('Moviments: 0'), findsOneWidget);
+  });
+
+  testWidgets('Animacions de la Sala 3 es dibuixen sense errors', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const Scaffold(
+          body: Column(children: [DominoFall(), HorsesDisjoint()]),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('{c₁} ∩ {c₂} = ∅'), findsOneWidget);
   });
 }

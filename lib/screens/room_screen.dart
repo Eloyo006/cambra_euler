@@ -91,11 +91,14 @@ class _PuzzleTile extends StatelessWidget {
         ),
         title: Text('${puzzle.id} · ${puzzle.title}'),
         subtitle: Text(
-          solved
-              ? 'Resolt'
-              : unlocked
-              ? puzzle.source
-              : "Resol l'enigma anterior",
+          [
+            solved
+                ? 'Resolt'
+                : unlocked
+                ? puzzle.source
+                : "Resol l'enigma anterior",
+            if (puzzle.optional) 'Opcional · −${puzzle.bonus} s',
+          ].join('\n'),
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(

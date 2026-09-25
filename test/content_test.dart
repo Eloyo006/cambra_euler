@@ -4,14 +4,16 @@ import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/models/puzzle.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers.dart';
+
 Puzzle p(String id) => puzzlesById[id]!;
 
 void main() {
   group('Estructura', () {
-    test('3 sales de 3 puzles, 3 pistes cadascun', () {
+    test('3 sales amb 3 puzles obligatoris, 3 pistes cadascun', () {
       expect(rooms, hasLength(3));
       for (final r in rooms) {
-        expect(r.puzzles, hasLength(3));
+        expect(r.puzzles.where((pz) => !pz.optional), hasLength(3));
       }
       for (final pz in puzzlesById.values) {
         expect(pz.hints, hasLength(3), reason: pz.id);
@@ -222,7 +224,15 @@ void main() {
         }
       }
       final s = p('3.1').steps;
-      expect(s[0].solutionLabel, '(1+a)⁰ = 1 = 1 + a·0');
+      final order = s[0] as OrderStep;
+      expect(order.lines, hasLength(6));
+      expect(order.lines.first, contains('(1+a)⁰ = 1 = 1 + a·0'));
+      expect(order.lines.last, startsWith('Conclusió'));
+      expect(order.check([0, 1, 2, 3, 4, 5]), isTrue);
+      expect(order.check(order.initialOrder), isFalse);
+      // L'ordre inicial és una permutació de totes les línies.
+      expect(order.initialOrder.toSet(), {0, 1, 2, 3, 4, 5});
+      expect(order.celebration, Celebration.dominoes);
       expect(s[1].solutionLabel, 'Perquè a ≥ −1 ⇒ 1 + a ≥ 0');
       expect(s[2].solutionLabel, 'Perquè a² ≥ 0 i k ≥ 0');
     });
@@ -235,15 +245,46 @@ void main() {
         if (n == 3) expect(m, 7);
         if (n == 5) expect(m, 31);
       }
-      expect(p('3.2').steps[0].check('7'), isTrue);
-      expect(p('3.2').steps[1].check('31'), isTrue);
-      expect(p('3.2').steps[2].solutionLabel, 'M(n) = 2ⁿ − 1');
+      final s = p('3.2').steps;
+      expect((s[0] as HanoiStep).minMoves, 7);
+      expect((s[1] as HanoiStep).minMoves, 15);
+      expect(s[0].check(hanoiSolution(3)), isTrue);
+      expect(s[1].check(hanoiSolution(4)), isTrue);
+      expect(s[2].check('31'), isTrue);
+      expect(s[3].solutionLabel, 'M(n) = 2ⁿ − 1');
     });
 
     test('3.3 cavalls: falla el pas de k=1 a 2', () {
       // Amb k+1 = 2, els k primers {c₁} i els k últims {c₂} són disjunts.
       expect({1}.intersection({2}), isEmpty);
-      expect(p('3.3').steps[0].solutionLabel, 'Al pas de k = 1 a k + 1 = 2');
+      final tap = p('3.3').steps[0] as TapLineStep;
+      expect(tap.lines[tap.wrongLine], contains('comparteixen'));
+      expect(tap.celebration, Celebration.disjointHorses);
+      expect(p('3.3').steps[1].solutionLabel, 'Al pas de k = 1 a k + 1 = 2');
+    });
+
+    test('3.4 bonus: 5ⁿ+1 parell però no múltiple de 4; 10 | 3⁴ⁿ+9', () {
+      var five = BigInt.one, three4n = BigInt.one;
+      for (var n = 0; n <= 30; n++) {
+        final a = five + BigInt.one;
+        expect(a % BigInt.two, BigInt.zero, reason: 'n=$n');
+        expect(a % BigInt.from(4), BigInt.two, reason: 'n=$n');
+        expect((three4n + BigInt.from(9)) % BigInt.from(10), BigInt.zero);
+        five *= BigInt.from(5);
+        three4n *= BigInt.from(81);
+      }
+      expect(mod(5, 4), 1);
+      expect(mod(81, 10), 1);
+      final pz = p('3.4');
+      expect(pz.optional, isTrue);
+      expect(pz.bonus, 60);
+      expect(pz.steps.map((s) => s.solutionLabel).take(3), ['1', '2', '1']);
+    });
+
+    test('3.4 és opcional: la sala se supera sense ell', () {
+      final room = rooms.firstWhere((r) => r.id == 'sala3');
+      expect(room.puzzles.where((pz) => !pz.optional), hasLength(3));
+      expect(room.puzzles.last.optional, isTrue);
     });
   });
 

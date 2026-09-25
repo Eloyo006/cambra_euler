@@ -51,6 +51,8 @@ class VictoryScreen extends ConsumerWidget {
                 children: [
                   _Row('Temps real', formatTime(s.elapsed)),
                   _Row('Penalització per pistes', '+${formatTime(s.penalty)}'),
+                  if (s.bonus > 0)
+                    _Row('Bonificació', '−${formatTime(s.bonus)}'),
                   for (final r in rooms)
                     _Row('Pistes · ${r.name}', '${s.roomHints(r)}'),
                   _Row(

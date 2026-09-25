@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
+import '../widgets/celebrations.dart';
 import '../widgets/feedback.dart';
 import '../widgets/mod_clock.dart';
 import '../widgets/steps/step_view.dart';
@@ -229,18 +230,34 @@ class _SolvedStep extends StatelessWidget {
   final bool animate;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: AnimatedCheck(animate: animate),
-      title: Text(step.prompt),
-      subtitle: Text(
-        step.solutionLabel,
-        style: const TextStyle(
-          color: AppColors.gold,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
-        ),
+  Widget build(BuildContext context) {
+    final celebration = switch (step.celebration) {
+      Celebration.dominoes when animate => const DominoFall(),
+      Celebration.disjointHorses => HorsesDisjoint(animate: animate),
+      _ => null,
+    };
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            leading: AnimatedCheck(animate: animate),
+            title: Text(step.prompt),
+            subtitle: Text(
+              step.solutionLabel,
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          if (celebration != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: celebration,
+            ),
+        ],
       ),
-    ),
-  );
+    );
+  }
 }

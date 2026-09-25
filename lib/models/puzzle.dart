@@ -3,15 +3,33 @@ import 'package:flutter/painting.dart';
 import '../core/modular.dart';
 import '../core/set_expr.dart';
 
+/// Animacions que es poden mostrar en resoldre un pas.
+enum Celebration {
+  none,
+
+  /// Una fila de dòminos que cauen (3.1).
+  dominoes,
+
+  /// Els grups {c₁} i {c₂} disjunts del pas k = 1 → 2 (3.3).
+  disjointHorses,
+}
+
 /// Un pas d'un puzle. Cada subclasse té dades immutables i un validador pur
 /// [check], que no depèn de cap widget.
 sealed class PuzzleStep {
-  const PuzzleStep({required this.prompt, this.success});
+  const PuzzleStep({
+    required this.prompt,
+    this.success,
+    this.celebration = Celebration.none,
+  });
 
   final String prompt;
 
   /// Missatge que es mostra quan el pas s'encerta.
   final String? success;
+
+  /// Animació que acompanya el pas un cop resolt.
+  final Celebration celebration;
 
   bool check(Object answer);
 
@@ -336,6 +354,7 @@ class OrderStep extends PuzzleStep {
     required this.lines,
     required this.initialOrder,
     super.success,
+    super.celebration,
   });
 
   final List<String> lines;
@@ -411,6 +430,7 @@ class TapLineStep extends PuzzleStep {
     required this.lines,
     required this.wrongLine,
     super.success,
+    super.celebration,
   });
 
   final List<String> lines;
@@ -482,6 +502,8 @@ class Puzzle {
     required this.hints,
     this.theory,
     this.outro,
+    this.optional = false,
+    this.bonus = 0,
   });
 
   final String id;
@@ -500,6 +522,12 @@ class Puzzle {
 
   /// Text que es mostra quan el puzle queda resolt.
   final String? outro;
+
+  /// Un puzle opcional no cal per obrir la porta.
+  final bool optional;
+
+  /// Segons que es resten del temps total en resoldre'l.
+  final int bonus;
 }
 
 class Room {

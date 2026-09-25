@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,7 +48,13 @@ class GameState {
   /// Cert quan s'ha obert el llibre amagat de la Biblioteca.
   final bool bookOpened;
 
-  int get total => elapsed + penalty;
+  /// Bonificació dels puzles opcionals resolts, en segons.
+  int get bonus => puzzlesById.values
+      .where((p) => p.optional && isSolved(p))
+      .fold(0, (s, p) => s + p.bonus);
+
+  /// Temps total: real + penalitzacions − bonificacions (mai negatiu).
+  int get total => math.max(0, elapsed + penalty - bonus);
 
   /// El llibre apareix a la Biblioteca quan es resol el puzle 2.3.
   bool get bookAvailable => isSolved(puzzlesById[secretBookUnlockedBy]!);
@@ -56,7 +63,9 @@ class GameState {
   bool isSolved(Puzzle p) => stepsDone(p) >= p.steps.length;
   int hintsUsed(Puzzle p) => hints[p.id] ?? 0;
 
-  bool isRoomSolved(Room r) => r.puzzles.every(isSolved);
+  /// Una sala està superada quan tots els puzles obligatoris ho estan.
+  bool isRoomSolved(Room r) =>
+      r.puzzles.where((p) => !p.optional).every(isSolved);
   bool get allRoomsSolved => rooms.every(isRoomSolved);
 
   /// Un puzle s'obre quan l'anterior de la sala està resolt.

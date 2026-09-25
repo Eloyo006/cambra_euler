@@ -112,7 +112,9 @@ class _RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final done = room.puzzles.where(state.isSolved).length;
+    final required = room.puzzles.where((p) => !p.optional).toList();
+    final done = required.where(state.isSolved).length;
+    final extra = room.puzzles.length - required.length;
     final solved = state.isRoomSolved(room);
     final text = Theme.of(context).textTheme;
     return Card(
@@ -141,7 +143,10 @@ class _RoomCard extends StatelessWidget {
                     Text(room.name, style: text.titleMedium),
                     Text(room.topic, style: text.bodySmall),
                     const SizedBox(height: 6),
-                    Text('$done / ${room.puzzles.length} enigmes resolts'),
+                    Text(
+                      '$done / ${required.length} enigmes resolts'
+                      '${extra > 0 ? ' · +$extra opcional' : ''}',
+                    ),
                   ],
                 ),
               ),

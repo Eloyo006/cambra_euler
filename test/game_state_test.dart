@@ -106,4 +106,33 @@ void main() {
     final c2 = await makeContainer({storageKey: raw});
     expect(c2.read(gameProvider).bookOpened, isTrue);
   });
+
+  test('el bonus opcional resta 60 s i la sala no el necessita', () async {
+    final room = rooms.firstWhere((r) => r.id == 'sala3');
+    final required = {
+      for (final pz in room.puzzles.where((pz) => !pz.optional))
+        pz.id: pz.steps.length,
+    };
+    final c = await makeContainer({
+      storageKey: jsonEncode(
+        GameState(progress: required, elapsed: 500).toJson(),
+      ),
+    });
+    expect(c.read(gameProvider).isRoomSolved(room), isTrue);
+    expect(c.read(gameProvider).total, 500);
+
+    final game = c.read(gameProvider.notifier);
+    final bonus = puzzlesById['3.4']!;
+    for (final s in bonus.steps) {
+      expect(game.answer(bonus, solutionOf(s)), isTrue);
+    }
+    expect(c.read(gameProvider).bonus, 60);
+    expect(c.read(gameProvider).total, 440);
+  });
+
+  test('el temps total no és mai negatiu', () {
+    final s = GameState(progress: {'3.4': puzzlesById['3.4']!.steps.length});
+    expect(s.bonus, 60);
+    expect(s.total, 0);
+  });
 }

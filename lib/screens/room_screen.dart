@@ -81,8 +81,8 @@ class _PuzzleTile extends StatelessWidget {
           solved
               ? Icons.check_circle
               : unlocked
-                  ? Icons.extension
-                  : Icons.lock,
+              ? Icons.extension
+              : Icons.lock,
           color: solved ? AppColors.ok : room.color,
         ),
         title: Text('${puzzle.id} · ${puzzle.title}'),
@@ -90,8 +90,8 @@ class _PuzzleTile extends StatelessWidget {
           solved
               ? 'Resolt'
               : unlocked
-                  ? puzzle.source
-                  : "Resol l'enigma anterior",
+              ? puzzle.source
+              : "Resol l'enigma anterior",
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(

@@ -1,23 +1,23 @@
 import 'dart:convert';
 
 import 'package:cambra_euler/data/content.dart';
-import 'package:cambra_euler/models/puzzle.dart';
+import 'helpers.dart';
 import 'package:cambra_euler/state/game_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<ProviderContainer> makeContainer([Map<String, Object> init = const {}]) async {
+Future<ProviderContainer> makeContainer([
+  Map<String, Object> init = const {},
+]) async {
   SharedPreferences.setMockInitialValues(init);
   final prefs = await SharedPreferences.getInstance();
-  final c = ProviderContainer(overrides: [prefsProvider.overrideWithValue(prefs)]);
+  final c = ProviderContainer(
+    overrides: [prefsProvider.overrideWithValue(prefs)],
+  );
   addTearDown(c.dispose);
   return c;
 }
-
-/// Resposta correcta d'un pas, en el format que espera `answer`.
-Object solutionOf(PuzzleStep s) =>
-    s.kind == StepKind.choice ? s.correctIndex : s.solutionLabel;
 
 void main() {
   test('una resposta incorrecta no avança', () async {

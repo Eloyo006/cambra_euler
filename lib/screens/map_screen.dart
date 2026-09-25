@@ -118,9 +118,9 @@ class _RoomCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => RoomScreen(room: room)),
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => RoomScreen(room: room))),
         child: Container(
           decoration: BoxDecoration(
             border: Border(left: BorderSide(color: room.color, width: 6)),
@@ -170,10 +170,10 @@ class _DoorCard extends StatelessWidget {
       child: InkWell(
         onTap: open
             ? () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const PuzzleScreen(puzzle: finalPuzzle),
-                  ),
-                )
+                MaterialPageRoute<void>(
+                  builder: (_) => const PuzzleScreen(puzzle: finalPuzzle),
+                ),
+              )
             : null,
         child: Padding(
           padding: const EdgeInsets.all(16),

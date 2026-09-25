@@ -14,7 +14,9 @@ final prefsProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('prefsProvider sense override'),
 );
 
-final gameProvider = NotifierProvider<GameNotifier, GameState>(GameNotifier.new);
+final gameProvider = NotifierProvider<GameNotifier, GameState>(
+  GameNotifier.new,
+);
 
 class GameState {
   const GameState({
@@ -66,33 +68,32 @@ class GameState {
     int? penalty,
     bool? started,
     bool? finished,
-  }) =>
-      GameState(
-        progress: progress ?? this.progress,
-        hints: hints ?? this.hints,
-        elapsed: elapsed ?? this.elapsed,
-        penalty: penalty ?? this.penalty,
-        started: started ?? this.started,
-        finished: finished ?? this.finished,
-      );
+  }) => GameState(
+    progress: progress ?? this.progress,
+    hints: hints ?? this.hints,
+    elapsed: elapsed ?? this.elapsed,
+    penalty: penalty ?? this.penalty,
+    started: started ?? this.started,
+    finished: finished ?? this.finished,
+  );
 
   Map<String, dynamic> toJson() => {
-        'progress': progress,
-        'hints': hints,
-        'elapsed': elapsed,
-        'penalty': penalty,
-        'started': started,
-        'finished': finished,
-      };
+    'progress': progress,
+    'hints': hints,
+    'elapsed': elapsed,
+    'penalty': penalty,
+    'started': started,
+    'finished': finished,
+  };
 
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
-        progress: Map<String, int>.from(j['progress'] as Map? ?? const {}),
-        hints: Map<String, int>.from(j['hints'] as Map? ?? const {}),
-        elapsed: j['elapsed'] as int? ?? 0,
-        penalty: j['penalty'] as int? ?? 0,
-        started: j['started'] as bool? ?? false,
-        finished: j['finished'] as bool? ?? false,
-      );
+    progress: Map<String, int>.from(j['progress'] as Map? ?? const {}),
+    hints: Map<String, int>.from(j['hints'] as Map? ?? const {}),
+    elapsed: j['elapsed'] as int? ?? 0,
+    penalty: j['penalty'] as int? ?? 0,
+    started: j['started'] as bool? ?? false,
+    finished: j['finished'] as bool? ?? false,
+  );
 }
 
 class GameNotifier extends Notifier<GameState> {

@@ -40,7 +40,11 @@ class VictoryScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: text.displayMedium?.copyWith(color: AppColors.gold),
             ),
-            Text('Temps total', textAlign: TextAlign.center, style: text.bodySmall),
+            Text(
+              'Temps total',
+              textAlign: TextAlign.center,
+              style: text.bodySmall,
+            ),
             const SizedBox(height: 16),
             Card(
               child: Column(
@@ -75,10 +79,10 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        title: Text(label),
-        trailing: Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-      );
+    title: Text(label),
+    trailing: Text(
+      value,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+    ),
+  );
 }

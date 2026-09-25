@@ -16,16 +16,17 @@ abstract final class AppColors {
 }
 
 ThemeData buildTheme() {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: AppColors.gold,
-    brightness: Brightness.dark,
-  ).copyWith(
-    primary: AppColors.gold,
-    onPrimary: AppColors.ink,
-    surface: AppColors.slate,
-    onSurface: AppColors.chalk,
-    error: AppColors.error,
-  );
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: AppColors.gold,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primary: AppColors.gold,
+        onPrimary: AppColors.ink,
+        surface: AppColors.slate,
+        onSurface: AppColors.chalk,
+        error: AppColors.error,
+      );
 
   return ThemeData(
     useMaterial3: true,

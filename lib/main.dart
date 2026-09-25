@@ -51,9 +51,9 @@ class _CambraAppState extends ConsumerState<CambraApp>
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: "La Cambra d'Euler",
-        debugShowCheckedModeBanner: false,
-        theme: buildTheme(),
-        home: const HomeScreen(),
-      );
+    title: "La Cambra d'Euler",
+    debugShowCheckedModeBanner: false,
+    theme: buildTheme(),
+    home: const HomeScreen(),
+  );
 }

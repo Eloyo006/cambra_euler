@@ -23,9 +23,9 @@ int? inverse(int a, int n) {
 
 /// Totes les solucions x ∈ {0, …, n−1} de a·x ≡ b (mod n).
 List<int> solveLinear(int a, int b, int n) => [
-      for (var x = 0; x < n; x++)
-        if (mod(a * x - b, n) == 0) x,
-    ];
+  for (var x = 0; x < n; x++)
+    if (mod(a * x - b, n) == 0) x,
+];
 
 /// Escriu x ∈ ℤₙ amb la notació del professor: {1, …, n}, amb n ≡ 0.
 int toProfNotation(int x, int n) {

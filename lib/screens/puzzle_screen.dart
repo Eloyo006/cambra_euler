@@ -5,7 +5,9 @@ import '../core/theme.dart';
 import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
+import '../widgets/feedback.dart';
 import '../widgets/mod_clock.dart';
+import '../widgets/steps/step_view.dart';
 import 'victory_screen.dart';
 
 class PuzzleScreen extends ConsumerStatefulWidget {
@@ -21,33 +23,32 @@ class PuzzleScreen extends ConsumerStatefulWidget {
 }
 
 class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
-  final _controller = TextEditingController();
-  String? _error;
   String? _success;
+
+  /// Pas que s'acaba de resoldre (per animar-ne el check).
+  int? _justSolved;
 
   Puzzle get _puzzle => widget.puzzle;
   Color get _color => widget.room?.color ?? AppColors.gold;
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit(Object answer) {
-    final step = _puzzle.steps[ref.read(gameProvider).stepsDone(_puzzle)];
+  bool _answer(Object answer) {
+    final index = ref.read(gameProvider).stepsDone(_puzzle);
     final ok = ref.read(gameProvider.notifier).answer(_puzzle, answer);
+    if (!ok) {
+      setState(() => _success = null);
+      return false;
+    }
     setState(() {
-      _error = ok ? null : 'No és correcte. Torna-ho a provar.';
-      _success = ok ? (step.success ?? 'Correcte!') : null;
-      if (ok) _controller.clear();
+      _success = _puzzle.steps[index].success ?? 'Correcte!';
+      _justSolved = index;
     });
-    if (ok && ref.read(gameProvider).finished) {
+    if (ref.read(gameProvider).finished) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(builder: (_) => const VictoryScreen()),
         (route) => route.isFirst,
       );
     }
+    return true;
   }
 
   Future<void> _askHint(int level) async {
@@ -107,24 +108,20 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
             ],
             const SizedBox(height: 16),
             for (var i = 0; i < done && i < _puzzle.steps.length; i++)
-              _SolvedStep(step: _puzzle.steps[i]),
-            if (!solved) ...[
-              _CurrentStep(
-                key: ValueKey('step-$done'),
+              _SolvedStep(step: _puzzle.steps[i], animate: i == _justSolved),
+            if (!solved)
+              StepView(
+                key: ValueKey('${_puzzle.id}-$done'),
                 step: _puzzle.steps[done],
-                controller: _controller,
-                onSubmit: _submit,
+                onAnswer: _answer,
               ),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(_error!, style: const TextStyle(color: AppColors.error)),
-                ),
-            ],
             if (_success != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_success!, style: const TextStyle(color: AppColors.ok)),
+                child: Text(
+                  _success!,
+                  style: const TextStyle(color: AppColors.ok),
+                ),
               ),
             if (solved) ...[
               const SizedBox(height: 16),
@@ -170,87 +167,6 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
   }
 }
 
-class _SolvedStep extends StatelessWidget {
-  const _SolvedStep({required this.step});
-  final PuzzleStep step;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: ListTile(
-          leading: const Icon(Icons.check_circle, color: AppColors.ok),
-          title: Text(step.prompt),
-          subtitle: Text(
-            step.solutionLabel,
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-}
-
-class _CurrentStep extends StatelessWidget {
-  const _CurrentStep({
-    super.key,
-    required this.step,
-    required this.controller,
-    required this.onSubmit,
-  });
-
-  final PuzzleStep step;
-  final TextEditingController controller;
-  final void Function(Object answer) onSubmit;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(step.prompt, style: text.titleMedium),
-            const SizedBox(height: 12),
-            ...switch (step.kind) {
-              StepKind.choice => [
-                  for (var i = 0; i < step.options.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: OutlinedButton(
-                        onPressed: () => onSubmit(i),
-                        child: Text(step.options[i], style: text.bodyLarge),
-                      ),
-                    ),
-                ],
-              StepKind.code || StepKind.text => [
-                  TextField(
-                    controller: controller,
-                    keyboardType: step.kind == StepKind.code
-                        ? TextInputType.number
-                        : TextInputType.text,
-                    textCapitalization: TextCapitalization.characters,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    decoration: const InputDecoration(hintText: 'Resposta'),
-                    onSubmitted: (v) => onSubmit(v),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: () => onSubmit(controller.text),
-                    child: const Text('Comprova'),
-                  ),
-                ],
-            },
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _InfoCard extends StatelessWidget {
   const _InfoCard({
     required this.icon,
@@ -266,26 +182,48 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        color: color.withValues(alpha: 0.15),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: Theme.of(context).textTheme.titleSmall),
-                    const SizedBox(height: 4),
-                    Text(body),
-                  ],
-                ),
-              ),
-            ],
+    color: color.withValues(alpha: 0.15),
+    child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(body),
+              ],
+            ),
           ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _SolvedStep extends StatelessWidget {
+  const _SolvedStep({required this.step, this.animate = false});
+  final PuzzleStep step;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: AnimatedCheck(animate: animate),
+      title: Text(step.prompt),
+      subtitle: Text(
+        step.solutionLabel,
+        style: const TextStyle(
+          color: AppColors.gold,
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
         ),
-      );
+      ),
+    ),
+  );
 }

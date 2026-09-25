@@ -28,7 +28,7 @@ void main() {
 
     test('opcions de resposta vàlides', () {
       for (final pz in puzzlesById.values) {
-        for (final s in pz.steps.where((s) => s.kind == StepKind.choice)) {
+        for (final s in pz.steps.whereType<ChoiceStep>()) {
           expect(s.correctIndex, inInclusiveRange(0, s.options.length - 1));
           expect(s.options.toSet(), hasLength(s.options.length));
         }
@@ -36,8 +36,10 @@ void main() {
     });
 
     test('el pany: sales → 3 (pos 2), 5 (pos 4), 4 (pos 5)', () {
-      expect([for (final r in rooms) (r.digit, r.digitPosition)],
-          [(3, 2), (5, 4), (4, 5)]);
+      expect(
+        [for (final r in rooms) (r.digit, r.digitPosition)],
+        [(3, 2), (5, 4), (4, 5)],
+      );
     });
   });
 
@@ -71,7 +73,10 @@ void main() {
       ];
       expect(parts.every((x) => x.isNotEmpty), isTrue);
       expect(parts.expand((x) => x).toList()..sort(), [1, 2, 3, 4, 5, 6]);
-      final class2 = {for (var b = 1; b <= 6; b++) if (mod(b - 2, 3) == 0) b};
+      final class2 = {
+        for (var b = 1; b <= 6; b++)
+          if (mod(b - 2, 3) == 0) b,
+      };
       expect(class2, {2, 5});
       expect(p('1.3').steps[0].solutionLabel, '{1,3,5}, {2,4}, {6}');
       expect(p('1.3').steps[1].solutionLabel, '{2, 5}');
@@ -81,7 +86,13 @@ void main() {
   group('Sala 2 · Aritmètica modular', () {
     test('2.1 invers de 2 a ℤ₅, inversos a ℤ₆, 2x ≡ 1 (mod 6)', () {
       expect(inverse(2, 5), 3);
-      expect([for (var x = 1; x <= 6; x++) if (inverse(x, 6) != null) x], [1, 5]);
+      expect(
+        [
+          for (var x = 1; x <= 6; x++)
+            if (inverse(x, 6) != null) x,
+        ],
+        [1, 5],
+      );
       expect(solveLinear(2, 1, 6), isEmpty);
       expect(p('2.1').steps[0].check('3'), isTrue);
       expect(p('2.1').steps[1].solutionLabel, '1 i 5');
@@ -186,7 +197,11 @@ void main() {
       expect(cs, [5]);
       final code = '${toProfNotation(a, 7)}3${toProfNotation(cs.single, 7)}54';
       expect(code, '53554');
-      expect(finalPuzzle.steps.map((s) => s.solutionLabel), ['5', '5', '53554']);
+      expect(finalPuzzle.steps.map((s) => s.solutionLabel), [
+        '5',
+        '5',
+        '53554',
+      ]);
     });
   });
 }

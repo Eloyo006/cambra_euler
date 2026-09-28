@@ -285,6 +285,27 @@ void main() {
       }
     });
 
+    test('3.1 i 3.3: surten totes les proves del banc, ben formades', () {
+      final proves = <String>{}, falses = <String>{};
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        final p = c.puzzlesById['3.1']!;
+        proves.add(p.title);
+        final order = p.steps[0] as OrderStep;
+        expect(order.lines.first, startsWith('Cas base'), reason: p.title);
+        expect(order.lines.last, startsWith('Conclusió'), reason: p.title);
+        expect(order.initialOrder, hasLength(order.lines.length));
+
+        final f = c.puzzlesById['3.3']!;
+        falses.add(f.title);
+        final tap = f.steps[0] as TapLineStep;
+        expect(tap.wrongLine, inInclusiveRange(0, tap.lines.length - 1));
+        expect(f.statement, contains('«demostra»'));
+      }
+      expect(proves, hasLength(4));
+      expect(falses, hasLength(3));
+    });
+
     test('3.4: les bases compleixen les congruències', () {
       for (final seed in seeds) {
         final pz = GameContent.forSeed(seed).puzzlesById['3.4']!;

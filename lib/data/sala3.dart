@@ -6,8 +6,8 @@ import 'variation.dart';
 /// Sala 3 · La Torre del Dòmino: inducció (apunts FOMA).
 ///
 /// A cada taula de variants, la primera fila és la del PDF del professor.
-/// Les proves (Bernoulli i cavalls) són fixes: varien l'ordre inicial i
-/// l'ordre de les opcions.
+/// Les proves (3.1) i les proves falses (3.3) surten d'un banc; en totes
+/// varien també l'ordre inicial i el de les opcions.
 Room buildSala3(Variation v, int digit) => Room(
   id: 'sala3',
   number: 3,
@@ -22,58 +22,51 @@ Room buildSala3(Variation v, int digit) => Room(
   digit: digit,
   digitPosition: 5,
   puzzles: [
-    _bernoulli(v.rng('3.1')),
+    _prova(v.rng('3.1')),
     _hanoi(v.rng('3.2')),
-    _cavalls(v.rng('3.3'), digit),
+    _falsa(v.rng('3.3'), digit),
     _divisibilitat(v.rng('3.4')),
   ],
 );
 
-// ─────────────────────── 3.1 · Prova de Bernoulli ───────────────────────
+// ─────────────────────── 3.1 · Prova per inducció ───────────────────────
 
-/// Ordres inicials de les línies (cap no és l'ordre correcte ni en deixa
-/// més de dues al seu lloc).
-const _ordresBernoulli = [
-  [3, 0, 5, 2, 4, 1],
-  [2, 4, 0, 5, 1, 3],
-  [5, 3, 1, 0, 2, 4],
-  [1, 5, 4, 0, 3, 2],
-  [4, 2, 3, 1, 5, 0],
-];
+/// Una pregunta de justificació sobre la prova.
+typedef _Pregunta = ({String prompt, List<String> options, int correct});
 
-Puzzle _bernoulli(Rng r) => Puzzle(
-  id: '3.1',
-  title: 'La prova de Bernoulli',
-  source: 'Apunts FOMA · Inducció',
-  statement:
-      "Al primer replà, sobre un faristol, hi ha la prova que Euler "
-      "feia copiar als néts: per inducció, (1 + a)ⁿ ≥ 1 + an per a "
-      "tot n ≥ 0 i tot a ≥ −1. El corrent d'aire de l'escala n'ha "
-      "barrejat els fulls, i la trapa no s'obrirà fins que la prova "
-      "torni a estar en ordre.",
-  steps: [
-    OrderStep(
-      prompt:
-          'Arrossega les línies (per la maneta de la dreta) fins que '
-          'la prova quedi en ordre.',
-      lines: const [
-        'Cas base (n = 0): (1+a)⁰ = 1 = 1 + a·0.',
-        "Hipòtesi d'inducció: (1+a)ᵏ ≥ 1 + ak per a un cert k ≥ 0.",
-        'Multipliquem per (1 + a) ≥ 0: (1+a)ᵏ⁺¹ ≥ (1 + ak)(1 + a).',
-        'Desenvolupem: (1 + ak)(1 + a) = 1 + a(k+1) + a²k.',
-        'Eliminem a²k ≥ 0: 1 + a(k+1) + a²k ≥ 1 + a(k+1).',
-        'Conclusió: (1+a)ᵏ⁺¹ ≥ 1 + a(k+1). Per inducció, val per a tot n ≥ 0.',
-      ],
-      initialOrder: r.pick(_ordresBernoulli),
-      success: 'Totes les fitxes cauen: la prova està en ordre!',
-      celebration: Celebration.dominoes,
-    ),
-    shuffledChoice(
-      r,
+/// Una prova per ordenar: sis línies en l'ordre correcte, dues preguntes de
+/// justificació i les pistes.
+typedef _Prova = ({
+  String title,
+  String enunciat,
+  List<String> lines,
+  _Pregunta q1,
+  _Pregunta q2,
+  List<String> hints,
+});
+
+const _pistaOrdre =
+    "Una prova per inducció sempre comença pel cas base i acaba amb "
+    "la conclusió. Entremig: hipòtesi → pas → càlcul.";
+
+/// Proves de la sala. La primera (Bernoulli) és la dels apunts.
+const List<_Prova> _proves = [
+  (
+    title: 'La prova de Bernoulli',
+    enunciat: '(1 + a)ⁿ ≥ 1 + an per a tot n ≥ 0 i tot a ≥ −1',
+    lines: [
+      'Cas base (n = 0): (1+a)⁰ = 1 = 1 + a·0.',
+      "Hipòtesi d'inducció: (1+a)ᵏ ≥ 1 + ak per a un cert k ≥ 0.",
+      'Multipliquem per (1 + a) ≥ 0: (1+a)ᵏ⁺¹ ≥ (1 + ak)(1 + a).',
+      'Desenvolupem: (1 + ak)(1 + a) = 1 + a(k+1) + a²k.',
+      'Eliminem a²k ≥ 0: 1 + a(k+1) + a²k ≥ 1 + a(k+1).',
+      'Conclusió: (1+a)ᵏ⁺¹ ≥ 1 + a(k+1). Per inducció, val per a tot n ≥ 0.',
+    ],
+    q1: (
       prompt:
           'Suposem (1+a)ᵏ ≥ 1 + ak. Per què podem multiplicar '
           'els dos costats per (1 + a) sense girar la desigualtat?',
-      options: const [
+      options: [
         'Perquè a > 0',
         'Perquè k ≥ 0',
         'Perquè a ≥ −1 ⇒ 1 + a ≥ 0',
@@ -81,12 +74,11 @@ Puzzle _bernoulli(Rng r) => Puzzle(
       ],
       correct: 2,
     ),
-    shuffledChoice(
-      r,
+    q2: (
       prompt:
           '(1+a)ᵏ⁺¹ ≥ (1 + ak)(1 + a) = 1 + a(k+1) + a²k. '
           'Per què podem eliminar a²k?',
-      options: const [
+      options: [
         'Perquè a²k = 0',
         'Perquè a² ≥ 0 i k ≥ 0',
         'Perquè a ≥ −1',
@@ -94,19 +86,184 @@ Puzzle _bernoulli(Rng r) => Puzzle(
       ],
       correct: 1,
     ),
-  ],
-  outro:
-      "Les fitxes cauen escala amunt, una rere l'altra, i l'última "
-      "empeny la trapa del segon replà.",
-  hints: const [
-    "Una prova per inducció sempre comença pel cas base i acaba amb "
-        "la conclusió. Entremig: hipòtesi → pas → càlcul.",
-    "Multiplicar una desigualtat per un nombre negatiu la gira. "
-        "Un quadrat mai no és negatiu.",
-    "Ordre: cas base, hipòtesi, multiplicar, desenvolupar, eliminar a²k, "
-        "conclusió. 1 + a ≥ 0 perquè a ≥ −1, i a²k ≥ 0.",
-  ],
-);
+    hints: [
+      _pistaOrdre,
+      "Multiplicar una desigualtat per un nombre negatiu la gira. "
+          "Un quadrat mai no és negatiu.",
+      "Ordre: cas base, hipòtesi, multiplicar, desenvolupar, eliminar a²k, "
+          "conclusió. 1 + a ≥ 0 perquè a ≥ −1, i a²k ≥ 0.",
+    ],
+  ),
+  (
+    title: 'La suma dels senars',
+    enunciat: '1 + 3 + 5 + … + (2n − 1) = n² per a tot n ≥ 1',
+    lines: [
+      'Cas base (n = 1): 1 = 1².',
+      "Hipòtesi d'inducció: 1 + 3 + … + (2k − 1) = k² per a un cert k ≥ 1.",
+      'El terme següent és 2(k + 1) − 1 = 2k + 1.',
+      'Sumem-lo: 1 + 3 + … + (2k − 1) + (2k + 1) = k² + 2k + 1.',
+      'Factoritzem: k² + 2k + 1 = (k + 1)².',
+      'Conclusió: la suma dels k + 1 primers senars és (k + 1)². Per '
+          'inducció, val per a tot n ≥ 1.',
+    ],
+    q1: (
+      prompt: 'Per què el terme següent de la suma és 2k + 1?',
+      options: [
+        'Perquè el terme n-èsim és 2n − 1, i ara n = k + 1',
+        'Perquè els senars comencen a 3',
+        'Perquè 2k + 1 és parell',
+        'Perquè ho diu el cas base',
+      ],
+      correct: 0,
+    ),
+    q2: (
+      prompt: "On es fa servir la hipòtesi d'inducció?",
+      options: [
+        'Al cas base',
+        'En substituir 1 + 3 + … + (2k − 1) per k²',
+        'En factoritzar k² + 2k + 1',
+        'Enlloc: no cal',
+      ],
+      correct: 1,
+    ),
+    hints: [
+      _pistaOrdre,
+      "El k-èsim senar és 2k − 1. I un quadrat perfecte: "
+          "a² + 2a + 1 = (a + 1)².",
+      "Ordre: cas base, hipòtesi, terme següent, sumar-lo, factoritzar, "
+          "conclusió. La hipòtesi s'usa en substituir la suma per k².",
+    ],
+  ),
+  (
+    title: 'La suma de Gauss',
+    enunciat: '1 + 2 + … + n = n(n + 1)/2 per a tot n ≥ 1',
+    lines: [
+      'Cas base (n = 1): 1 = 1·2/2.',
+      "Hipòtesi d'inducció: 1 + 2 + … + k = k(k + 1)/2 per a un cert k ≥ 1.",
+      'Sumem k + 1 als dos costats: 1 + 2 + … + k + (k + 1) = '
+          'k(k + 1)/2 + (k + 1).',
+      'Traiem factor comú (k + 1): k(k + 1)/2 + (k + 1) = (k + 1)(k/2 + 1).',
+      'Operem: (k + 1)(k/2 + 1) = (k + 1)(k + 2)/2.',
+      'Conclusió: 1 + … + (k + 1) = (k + 1)(k + 2)/2. Per inducció, val '
+          'per a tot n ≥ 1.',
+    ],
+    q1: (
+      prompt: 'Per què sumem k + 1 als dos costats?',
+      options: [
+        'Perquè és el terme següent de la suma',
+        'Perquè k + 1 és parell',
+        'Per simplificar la fracció',
+        'Perquè ho demana el cas base',
+      ],
+      correct: 0,
+    ),
+    q2: (
+      prompt: 'On ha d\'arribar el pas inductiu?',
+      options: [
+        'A k(k + 1)/2',
+        'A (k + 1)(k + 2)/2',
+        'A (k + 1)²/2',
+        'A k(k + 2)/2',
+      ],
+      correct: 1,
+    ),
+    hints: [
+      _pistaOrdre,
+      "Per saber on has d'arribar, substitueix n per k + 1 a la fórmula "
+          "n(n + 1)/2.",
+      "Ordre: cas base, hipòtesi, sumar k + 1, factor comú, operar, "
+          "conclusió. Cal arribar a (k + 1)(k + 2)/2.",
+    ],
+  ),
+  (
+    title: 'Els cubs i el 3',
+    enunciat: 'n³ − n és múltiple de 3 per a tot n ≥ 0',
+    lines: [
+      'Cas base (n = 0): 0³ − 0 = 0, que és múltiple de 3.',
+      "Hipòtesi d'inducció: k³ − k = 3q per a un cert k ≥ 0 i un enter q.",
+      'Desenvolupem: (k + 1)³ − (k + 1) = k³ + 3k² + 3k + 1 − k − 1.',
+      'Reagrupem: k³ + 3k² + 3k − k = (k³ − k) + 3k² + 3k.',
+      'Substituïm la hipòtesi: (k³ − k) + 3k² + 3k = 3q + 3(k² + k) = '
+          '3(q + k² + k).',
+      'Conclusió: (k + 1)³ − (k + 1) és múltiple de 3. Per inducció, val '
+          'per a tot n ≥ 0.',
+    ],
+    q1: (
+      prompt: 'Per què agrupem k³ − k?',
+      options: [
+        'Perquè és el que la hipòtesi diu que és múltiple de 3',
+        'Perquè k³ − k = 0',
+        'Perquè k és múltiple de 3',
+        'Per eliminar el cub',
+      ],
+      correct: 0,
+    ),
+    q2: (
+      prompt: 'Per què 3k² + 3k és múltiple de 3?',
+      options: [
+        'Perquè k és múltiple de 3',
+        'Perquè k² + k és parell',
+        'Perquè és 3·(k² + k)',
+        "Per la hipòtesi d'inducció",
+      ],
+      correct: 2,
+    ),
+    hints: [
+      _pistaOrdre,
+      "(k + 1)³ = k³ + 3k² + 3k + 1. Busca-hi el tros que coneixes per la "
+          "hipòtesi.",
+      "Ordre: cas base, hipòtesi, desenvolupar, reagrupar, substituir la "
+          "hipòtesi, conclusió. 3k² + 3k = 3(k² + k).",
+    ],
+  ),
+];
+
+/// Ordres inicials de les sis línies (cap no és l'ordre correcte ni en
+/// deixa més d'una al seu lloc).
+const _ordres = [
+  [3, 0, 5, 2, 4, 1],
+  [2, 4, 0, 5, 1, 3],
+  [5, 3, 1, 0, 2, 4],
+  [1, 5, 4, 0, 3, 2],
+  [4, 2, 3, 1, 5, 0],
+];
+
+Puzzle _prova(Rng r) {
+  final p = r.pick(_proves);
+  ChoiceStep pregunta(_Pregunta q) => shuffledChoice(
+    r,
+    prompt: q.prompt,
+    options: q.options,
+    correct: q.correct,
+  );
+  return Puzzle(
+    id: '3.1',
+    title: p.title,
+    source: 'Apunts FOMA · Inducció',
+    statement:
+        "Al primer replà, sobre un faristol, hi ha la prova que Euler "
+        "feia copiar als néts: per inducció, ${p.enunciat}. El corrent "
+        "d'aire de l'escala n'ha barrejat els fulls, i la trapa no s'obrirà "
+        "fins que la prova torni a estar en ordre.",
+    steps: [
+      OrderStep(
+        prompt:
+            'Arrossega les línies (per la maneta de la dreta) fins que '
+            'la prova quedi en ordre.',
+        lines: p.lines,
+        initialOrder: r.pick(_ordres),
+        success: 'Totes les fitxes cauen: la prova està en ordre!',
+        celebration: Celebration.dominoes,
+      ),
+      pregunta(p.q1),
+      pregunta(p.q2),
+    ],
+    outro:
+        "Les fitxes cauen escala amunt, una rere l'altra, i l'última "
+        "empeny la trapa del segon replà.",
+    hints: p.hints,
+  );
+}
 
 // ─────────────────────────── 3.2 · Torres de Hanoi ───────────────────────────
 
@@ -176,64 +333,172 @@ Puzzle _hanoi(Rng r) {
   );
 }
 
-// ─────────────────────── 3.3 · Cavalls del mateix color ───────────────────────
+// ─────────────────────────── 3.3 · Prova falsa ───────────────────────────
 
-/// Ordres de les línies no es toquen (és una lectura); només les opcions.
-Puzzle _cavalls(Rng r, int digit) => Puzzle(
-  id: '3.3',
-  title: 'Els cavalls del mateix color',
-  source: 'Apunts FOMA · Inducció (prova falsa)',
-  statement:
-      "A l'observatori, al costat del telescopi, hi ha el quadern d'un "
-      "deixeble massa confiat que «demostra» per inducció que tots els "
-      "cavalls són del mateix color. Al marge, amb la lletra d'Euler: "
-      "«Troba on falla i tindràs l'última xifra.»",
-  steps: [
-    const TapLineStep(
-      prompt: 'Toca la línia on falla la prova.',
-      lines: [
-        'Afirmació: en tot grup de n ≥ 1 cavalls, tots són del mateix color.',
-        "Cas base (n = 1): un grup d'un sol cavall té un sol color.",
-        "Hipòtesi: tot grup de k cavalls és d'un sol color.",
-        'Agafem k + 1 cavalls: c₁, c₂, …, cₖ₊₁.',
-        'Els k primers, {c₁, …, cₖ}, són del mateix color (hipòtesi).',
-        'Els k últims, {c₂, …, cₖ₊₁}, també ho són (hipòtesi).',
-        'Els dos grups comparteixen cavalls, així que els k + 1 són '
-            'del mateix color.',
-        'Per inducció, tots els cavalls són del mateix color.',
-      ],
-      wrongLine: 6,
-      success:
-          'Aquesta és la línia: els dos grups no sempre comparteixen '
-          'cavalls.',
-      celebration: Celebration.disjointHorses,
-    ),
-    shuffledChoice(
-      r,
+/// Una prova per inducció que no s'aguanta: les línies, la que falla i una
+/// pregunta per concretar per què.
+typedef _Falsa = ({
+  String title,
+  String afirmacio,
+  List<String> lines,
+  int wrongLine,
+  String tapSuccess,
+  Celebration celebration,
+  _Pregunta pregunta,
+  String preguntaSuccess,
+  List<String> hints,
+});
+
+/// Proves falses. Cadascuna falla d'una manera diferent: un pas que no val
+/// per al k més petit, un cas base que no hi és i una desigualtat falsa.
+/// La primera (els cavalls) és la dels apunts.
+const List<_Falsa> _falses = [
+  (
+    title: 'Els cavalls del mateix color',
+    afirmacio: 'tots els cavalls són del mateix color',
+    lines: [
+      'Afirmació: en tot grup de n ≥ 1 cavalls, tots són del mateix color.',
+      "Cas base (n = 1): un grup d'un sol cavall té un sol color.",
+      "Hipòtesi: tot grup de k cavalls és d'un sol color.",
+      'Agafem k + 1 cavalls: c₁, c₂, …, cₖ₊₁.',
+      'Els k primers, {c₁, …, cₖ}, són del mateix color (hipòtesi).',
+      'Els k últims, {c₂, …, cₖ₊₁}, també ho són (hipòtesi).',
+      'Els dos grups comparteixen cavalls, així que els k + 1 són '
+          'del mateix color.',
+      'Per inducció, tots els cavalls són del mateix color.',
+    ],
+    wrongLine: 6,
+    tapSuccess:
+        'Aquesta és la línia: els dos grups no sempre comparteixen cavalls.',
+    celebration: Celebration.disjointHorses,
+    pregunta: (
       prompt: 'Per a quin pas concret falla?',
-      options: const [
+      options: [
         'Al cas base n = 1',
         'Al pas de k = 1 a k + 1 = 2',
         'Al pas de k = 2 a k + 1 = 3',
         'La inducció no es pot fer servir amb cavalls',
       ],
       correct: 1,
-      success:
-          "Amb k + 1 = 2, els grups són {c₁} i {c₂}: no comparteixen "
-          "cap cavall, i la cadena es trenca.",
     ),
-  ],
-  outro:
-      "Quan passes el full, dins de la tapa del quadern hi ha un $digit "
-      "escrit en tinta vermella. Per la finestra de l'observatori, el "
-      "cel ja comença a clarejar.",
-  hints: const [
-    "El cas base és cert. El problema és en algun pas concret.",
-    "El pas inductiu ha de funcionar per a tot k ≥ 1, també per al més petit.",
-    "Prova-ho amb k + 1 = 2: quins són els «k primers» i els «k últims»? "
-        "Tenen algun cavall en comú?",
-  ],
-);
+    preguntaSuccess:
+        "Amb k + 1 = 2, els grups són {c₁} i {c₂}: no comparteixen "
+        "cap cavall, i la cadena es trenca.",
+    hints: [
+      "El cas base és cert. El problema és en algun pas concret.",
+      "El pas inductiu ha de funcionar per a tot k ≥ 1, també per al més "
+          "petit.",
+      "Prova-ho amb k + 1 = 2: quins són els «k primers» i els «k últims»? "
+          "Tenen algun cavall en comú?",
+    ],
+  ),
+  (
+    title: 'La fitxa que no cau',
+    afirmacio: 'n = n + 1 per a tot n ≥ 0',
+    lines: [
+      'Afirmació: per a tot n ≥ 0, n = n + 1.',
+      'Hipòtesi: k = k + 1 per a un cert k ≥ 0.',
+      'Sumem 1 als dos costats: k + 1 = k + 2.',
+      'Per tant, si val per a k, també val per a k + 1.',
+      'Com que el pas inductiu funciona, per inducció val per a tot n ≥ 0.',
+    ],
+    wrongLine: 4,
+    tapSuccess:
+        'Aquesta és la línia: conclou sense haver comprovat cap cas base.',
+    celebration: Celebration.none,
+    pregunta: (
+      prompt: 'Què li falta a la prova?',
+      options: [
+        'El cas base: amb n = 0 diria 0 = 1, que és fals',
+        'Un pas inductiu correcte: sumar 1 no es pot fer',
+        'Res: la prova és correcta',
+        'Que k sigui parell',
+      ],
+      correct: 0,
+    ),
+    preguntaSuccess:
+        "Sense cas base, la cadena no comença: si la primera fitxa no cau, "
+        "no en cau cap.",
+    hints: [
+      "Mira les parts que ha de tenir tota prova per inducció. Hi són "
+          "totes?",
+      "El pas inductiu (de k a k + 1) és correcte. El problema és on "
+          "comença la cadena.",
+      "No hi ha cas base. Amb n = 0 l'afirmació diu 0 = 1: la primera "
+          "fitxa no cau.",
+    ],
+  ),
+  (
+    title: 'Quadrats i potències',
+    afirmacio: 'n² ≤ 2ⁿ per a tot n ≥ 1',
+    lines: [
+      'Afirmació: per a tot n ≥ 1, n² ≤ 2ⁿ.',
+      'Cas base (n = 1): 1² = 1 ≤ 2 = 2¹.',
+      'Hipòtesi: k² ≤ 2ᵏ per a un cert k ≥ 1.',
+      '(k + 1)² = k² + 2k + 1 ≤ 2ᵏ + 2k + 1, per la hipòtesi.',
+      'Com que 2k + 1 ≤ 2ᵏ, tenim 2ᵏ + 2k + 1 ≤ 2ᵏ + 2ᵏ = 2ᵏ⁺¹.',
+      'Per inducció, n² ≤ 2ⁿ per a tot n ≥ 1.',
+    ],
+    wrongLine: 4,
+    tapSuccess: 'Aquesta és la línia: 2k + 1 ≤ 2ᵏ no és cert per a tot k ≥ 1.',
+    celebration: Celebration.none,
+    pregunta: (
+      prompt: 'Per a quins k falla «2k + 1 ≤ 2ᵏ»?',
+      options: [
+        'Només per a k = 5',
+        'Per a cap k',
+        'Per a k = 1 i k = 2',
+        'Per a tots els k',
+      ],
+      correct: 2,
+    ),
+    preguntaSuccess:
+        "Amb k = 1: 3 > 2, i amb k = 2: 5 > 4. De fet, n = 3 desmenteix "
+        "l'afirmació: 3² = 9 > 8 = 2³.",
+    hints: [
+      "El cas base i la hipòtesi són correctes. Revisa cada desigualtat "
+          "del pas inductiu.",
+      "Una desigualtat que es fa servir al pas inductiu ha de ser certa per "
+          "a tot k ≥ 1, també per als més petits.",
+      "Prova 2k + 1 ≤ 2ᵏ amb k = 1 i k = 2. I prova l'afirmació amb n = 3.",
+    ],
+  ),
+];
+
+Puzzle _falsa(Rng r, int digit) {
+  final f = r.pick(_falses);
+  return Puzzle(
+    id: '3.3',
+    title: f.title,
+    source: 'Apunts FOMA · Inducció (prova falsa)',
+    statement:
+        "A l'observatori, al costat del telescopi, hi ha el quadern d'un "
+        "deixeble massa confiat que «demostra» per inducció que "
+        "${f.afirmacio}. Al marge, amb la lletra d'Euler: «Troba on falla i "
+        "tindràs l'última xifra.»",
+    steps: [
+      TapLineStep(
+        prompt: 'Toca la línia on falla la prova.',
+        lines: f.lines,
+        wrongLine: f.wrongLine,
+        success: f.tapSuccess,
+        celebration: f.celebration,
+      ),
+      shuffledChoice(
+        r,
+        prompt: f.pregunta.prompt,
+        options: f.pregunta.options,
+        correct: f.pregunta.correct,
+        success: f.preguntaSuccess,
+      ),
+    ],
+    outro:
+        "Quan passes el full, dins de la tapa del quadern hi ha un $digit "
+        "escrit en tinta vermella. Per la finestra de l'observatori, el "
+        "cel ja comença a clarejar.",
+    hints: f.hints,
+  );
+}
 
 // ───────────────────── 3.4 · Divisibilitat (ex. 11 i 30) ─────────────────────
 

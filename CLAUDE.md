@@ -123,6 +123,7 @@ La porta final demana calcular `a` i `c`.
 | **3.1 Prova de Bernoulli.** (1+a)ⁿ ≥ 1+an, a ≥ −1 | Cas base: **(1+a)⁰ = 1 = 1+a·0** · es pot multiplicar per (1+a) perquè **a ≥ −1 ⇒ 1+a ≥ 0** · a²k es pot eliminar perquè **a² ≥ 0 i k ≥ 0** |
 | **3.2 Torres de Hanoi** | M(3) = **7** · M(5) = **31** · M(n) = **2ⁿ − 1** (suma geomètrica amb a₁=1, r=2) |
 | **3.3 Cavalls del mateix color** | Falla **el pas de k=1 a k+1=2**: els grups {c₁} i {c₂} no comparteixen cap cavall |
+- Variants (fora de la partida del PDF): el 3.1 pot ser també **la suma dels senars** (1 + 3 + … + (2n−1) = n²), **la suma de Gauss** (1 + … + n = n(n+1)/2) o **n³ − n múltiple de 3**; el 3.3 pot ser també **n = n + 1** (falta el cas base) o **n² ≤ 2ⁿ** (la desigualtat 2k + 1 ≤ 2ᵏ falla per a k = 1, 2). Tot a `lib/data/sala3.dart`.
 
 ### Porta d'Euler (Ex. 4)
 - Condicions: `a 3 c 5 4` a ℤ₇, a = 3⁻¹ i 5c ≡ 4.

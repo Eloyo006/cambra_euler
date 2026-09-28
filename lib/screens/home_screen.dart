@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme.dart';
-import '../data/content.dart';
 import '../state/game_state.dart';
 import 'intro_screen.dart';
 import 'map_screen.dart';
@@ -17,9 +16,12 @@ class HomeScreen extends ConsumerWidget {
     final finished = s.finished;
     // La primera vegada, la història d'Euler (el rellotge encara no corre).
     if (!s.started) {
-      final go = await Navigator.of(
-        context,
-      ).push(MaterialPageRoute<bool>(builder: (_) => const IntroScreen()));
+      final go = await Navigator.of(context).push(
+        MaterialPageRoute<bool>(
+          builder: (_) =>
+              IntroScreen(text: ref.read(gameProvider).content.intro),
+        ),
+      );
       if (go != true || !context.mounted) return;
     }
     if (!finished) game.start();
@@ -87,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
-                child: Text(homeBlurb, style: text.bodyLarge),
+                child: Text(s.content.homeBlurb, style: text.bodyLarge),
               ),
             ),
             const SizedBox(height: 24),

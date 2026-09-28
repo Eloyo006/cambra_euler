@@ -554,7 +554,8 @@ class Room {
   final Color color;
   final String intro;
 
-  /// Xifra del pany «a 3 c 5 4» que dona la sala, i la seva posició (1–5).
+  /// Xifra del pany «a d₁ c d₂ d₃» que dona la sala (1–7) i la seva posició
+  /// (1–5). Varia per partida: surt de [Pany].
   final int digit;
   final int digitPosition;
 

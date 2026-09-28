@@ -1,15 +1,17 @@
-// Textos i regles fixos del joc (no depenen de la partida).
+// Textos i regles del joc. Els que depenen de la partida (el pany) són
+// funcions i en queden desats a GameContent.
 
 const List<int> hintPenalties = [30, 60, 120];
 const List<String> hintLabels = ['Suggeriment', 'Teoria', 'Gairebé la solució'];
 
-const String introText =
+/// La intro que s'escriu lletra a lletra. [pany] és «a 3 c 5 4».
+String buildIntroText(String pany) =>
     "Sant Petersburg, 18 de setembre de 1783. Leonhard Euler ha mort aquesta "
     "tarda, i tu, el seu ajudant, ets l'única persona que queda a la casa.\n\n"
     "A la seva cambra de treball hi ha l'últim manuscrit d'Euler. A trenc "
     "d'alba, l'Acadèmia de Ciències vindrà a segellar-la, i ningú no el "
     "tornarà a llegir. La porta té un pany de cinc xifres. Només s'hi llegeix "
-    "«a 3 c 5 4».\n\n"
+    "«$pany».\n\n"
     "Els últims anys, Euler ja no hi veia, i ho guardava tot al cap. Va "
     "amagar cada xifra que falta en una sala de la casa i hi va deixar "
     "enigmes, perquè només pogués entrar qui els entengués: la Biblioteca "
@@ -17,11 +19,11 @@ const String introText =
     "Dòmino (inducció). Les dues lletres, a i c, les hauràs de calcular tu.\n\n"
     "La nit s'acaba. Cada pista que demanis t'acosta a l'alba.";
 
-/// Resum curt per a la portada; la història sencera és a [introText].
-const String homeBlurb =
+/// Resum curt per a la portada; la història sencera és a [buildIntroText].
+String buildHomeBlurb(String pany) =>
     "Sant Petersburg, 1783. Euler acaba de morir, i a trenc d'alba "
     "l'Acadèmia segellarà la seva cambra de treball. Tens una nit per trobar "
-    "les xifres del pany «a 3 c 5 4» i salvar-ne l'últim manuscrit.";
+    "les xifres del pany «$pany» i salvar-ne l'últim manuscrit.";
 
 const String victoryText =
     "La porta cedeix. Sobre la taula, entre espelmes consumides, hi ha el "

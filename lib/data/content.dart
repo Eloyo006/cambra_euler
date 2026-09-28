@@ -3,9 +3,11 @@ import 'porta.dart';
 import 'sala1.dart';
 import 'sala2.dart';
 import 'sala3.dart';
+import 'texts.dart';
 import 'variation.dart';
 
 export 'texts.dart';
+export 'porta.dart' show Pany;
 export 'variation.dart' show pdfSeed;
 
 /// Tot el contingut d'una partida, generat a partir de la seva llavor.
@@ -17,10 +19,13 @@ export 'variation.dart' show pdfSeed;
 class GameContent {
   GameContent._({
     required this.seed,
+    required this.pany,
     required this.rooms,
     required this.finalPuzzle,
     required this.secretBookText,
-  }) : puzzlesById = {
+  }) : intro = buildIntroText(pany.pattern),
+       homeBlurb = buildHomeBlurb(pany.pattern),
+       puzzlesById = {
          for (final r in rooms)
            for (final p in r.puzzles) p.id: p,
          finalPuzzle.id: finalPuzzle,
@@ -38,15 +43,28 @@ class GameContent {
 
   static GameContent _build(int seed) {
     final v = Variation(seed);
+    // Primer el pany: les sales en donen les xifres i la porta, les
+    // condicions.
+    final pany = buildPany(v);
+    final (d1, d2, d3) = pany.digits;
     return GameContent._(
       seed: seed,
-      rooms: [buildSala1(v), buildSala2(v), buildSala3(v)],
-      finalPuzzle: buildPorta(v),
-      secretBookText: buildSecretBookText(v),
+      pany: pany,
+      rooms: [buildSala1(v, d1), buildSala2(v, d2), buildSala3(v, d3)],
+      finalPuzzle: buildPorta(pany),
+      secretBookText: buildSecretBookText(pany),
     );
   }
 
   final int seed;
+
+  /// El pany «a 3 c 5 4» d'aquesta partida.
+  final Pany pany;
+
+  /// La intro (lletra a lletra) i el resum de la portada.
+  final String intro;
+  final String homeBlurb;
+
   final List<Room> rooms;
 
   /// La porta d'Euler.

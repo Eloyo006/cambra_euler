@@ -9,7 +9,7 @@ import '../widgets/game_clock.dart';
 import 'puzzle_screen.dart';
 import 'room_screen.dart';
 
-/// El vestíbul: les tres sales i la porta amb el pany «a 3 c 5 4».
+/// El vestíbul: les tres sales i la porta amb el pany de la partida.
 class MapScreen extends ConsumerWidget {
   const MapScreen({super.key});
 

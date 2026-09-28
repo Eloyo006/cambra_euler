@@ -85,12 +85,20 @@ void main() {
     });
 
     test('les variants existeixen de veritat (no surt sempre la mateixa)', () {
-      // «Empremta» d'un puzle: enunciat, preguntes i solucions.
+      // «Empremta» d'un puzle: enunciat, preguntes, solucions i ordres.
+      String order(PuzzleStep s) => switch (s) {
+        ChoiceStep c => c.options.join('|'),
+        OrderStep o => o.initialOrder.join(','),
+        _ => '',
+      };
       String print(Puzzle pz) => [
         pz.statement,
-        for (final s in pz.steps) '${s.prompt}|${s.solutionLabel}',
+        for (final s in pz.steps) '${s.prompt}|${s.solutionLabel}|${order(s)}',
       ].join('\n');
-      for (final id in ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3']) {
+      for (final id in [
+        ...['1.1', '1.2', '1.3', '2.1', '2.2', '2.3'],
+        ...['3.1', '3.2', '3.3', '3.4', 'porta'],
+      ]) {
         final prints = {
           for (final seed in seeds)
             print(GameContent.forSeed(seed).puzzlesById[id]!),
@@ -259,6 +267,77 @@ void main() {
         expect(affineDecrypt(am[1]!, ka, kb), af.accepted.first);
         expect(af.affine, (a: ka, b: kb));
         expect(pz.outro, startsWith(af.accepted.first));
+      }
+    });
+
+    test('3.1 i 3.2: prova desordenada i M(k) = 2ᵏ − 1', () {
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        final order = c.puzzlesById['3.1']!.steps[0] as OrderStep;
+        expect([...order.initialOrder]..sort(), [
+          for (var i = 0; i < order.lines.length; i++) i,
+        ]);
+        expect(order.check(order.initialOrder), isFalse, reason: '$seed');
+
+        final q = c.puzzlesById['3.2']!.steps[2] as CodeStep;
+        final k = int.parse(RegExp(r'M\((\d)\)').firstMatch(q.prompt)![1]!);
+        expect(q.solution, '${(1 << k) - 1}');
+      }
+    });
+
+    test('3.4: les bases compleixen les congruències', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['3.4']!;
+        final b11 = int.parse(
+          RegExp(r'Ex\. 11: (\d+)').firstMatch(pz.statement)![1]!,
+        );
+        expect(b11 % 4, 1);
+        final m = RegExp(
+          r'Quant val (\d+)\S* = (\d+) mòdul 10',
+        ).firstMatch((pz.steps[2] as CodeStep).prompt)!;
+        final pow = int.parse(m[2]!);
+        expect(pow % 10, 1, reason: '$seed');
+        // pow és una potència de la base.
+        var x = 1, base = int.parse(m[1]!);
+        while (x < pow) {
+          x *= base;
+        }
+        expect(x, pow, reason: '$seed');
+      }
+    });
+
+    test('el pany és coherent a tot arreu', () {
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        final p = c.pany;
+        final (d1, d2, d3) = p.digits;
+        for (final d in [d1, d2, d3, p.a, p.c]) {
+          expect(d, inInclusiveRange(1, 7), reason: '$seed');
+        }
+        expect(mod(p.k * p.a, 7), 1);
+        expect(mod(p.m * p.c - p.t, 7), 0);
+        expect([for (final r in c.rooms) r.digit], [d1, d2, d3]);
+        // L'últim puzle obligatori de cada sala anuncia la seva xifra.
+        for (final r in c.rooms) {
+          final last = r.puzzles.lastWhere((x) => !x.optional);
+          expect(last.outro, contains('un ${r.digit} '), reason: r.id);
+        }
+        final door = c.finalPuzzle;
+        expect((door.steps[0] as CodeStep).solution, '${p.a}');
+        expect((door.steps[1] as CodeStep).solution, '${p.c}');
+        final lock = door.steps[2] as WheelLockStep;
+        expect(lock.solution, ['${p.a}', '$d1', '${p.c}', '$d2', '$d3']);
+        for (final r in c.rooms) {
+          expect(lock.locked, contains(r.digitPosition - 1));
+          expect(lock.solution![r.digitPosition - 1], '${r.digit}');
+        }
+        expect(
+          c.secretBookText,
+          contains("a és l'invers de ${p.k}; c·${p.m} ≡ ${p.t}, a ℤ₇"),
+        );
+        expect(c.intro, contains('«${p.pattern}»'));
+        expect(c.homeBlurb, contains('«${p.pattern}»'));
+        expect(door.statement, contains('«${p.pattern}»'));
       }
     });
 

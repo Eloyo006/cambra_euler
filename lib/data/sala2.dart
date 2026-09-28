@@ -8,7 +8,7 @@ import 'variation.dart';
 ///
 /// A cada taula de variants, la primera fila és la del PDF del professor.
 /// Les solucions no s'escriuen a mà: es calculen amb `core/modular.dart`.
-Room buildSala2(Variation v) => Room(
+Room buildSala2(Variation v, int digit) => Room(
   id: 'sala2',
   number: 2,
   name: 'La Sala dels Rellotges',
@@ -18,9 +18,13 @@ Room buildSala2(Variation v) => Room(
       "Desenes de rellotges, i cap no marca la mateixa hora. Euler deia que "
       "el temps és el millor exemple de residu: quan arriba a les 12, torna "
       "a començar. El rellotger de la casa hi va deixar la feina a mitges…",
-  digit: 5,
+  digit: digit,
   digitPosition: 4,
-  puzzles: [_taula(v.rng('2.1')), _armari(v.rng('2.2')), _cartes(v.rng('2.3'))],
+  puzzles: [
+    _taula(v.rng('2.1')),
+    _armari(v.rng('2.2')),
+    _cartes(v.rng('2.3'), digit),
+  ],
 );
 
 // ─────────────────────── 2.1 · Taula de ℤ₅ (ex. 1) ───────────────────────
@@ -253,7 +257,7 @@ const _afins = [
   (a: 2, b: 10),
 ];
 
-Puzzle _cartes(Rng r) {
+Puzzle _cartes(Rng r, int digit) {
   final c = r.pick(_cesar);
   final cesar = affineEncrypt(c.text, 1, c.k).replaceAll(' ', '_');
   final m = r.pick(_maldestre);
@@ -322,7 +326,7 @@ Puzzle _cartes(Rng r) {
     outro:
         "${w.word}: «llibre», en ${w.llengua}, la llengua del seu "
         "corresponsal de ${w.ciutat}. Sota la carta hi ha una roda dentada "
-        "amb un 5 gravat. I potser a la Biblioteca hi ha un llibre que "
+        "amb un $digit gravat. I potser a la Biblioteca hi ha un llibre que "
         "abans no hi era…",
   );
 }

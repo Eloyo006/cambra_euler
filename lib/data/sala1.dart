@@ -6,7 +6,7 @@ import 'variation.dart';
 /// Sala 1 · La Biblioteca: teoria de conjunts (apunts FOMA).
 ///
 /// A cada taula de variants, la primera fila és la del PDF del professor.
-Room buildSala1(Variation v) => Room(
+Room buildSala1(Variation v, int digit) => Room(
   id: 'sala1',
   number: 1,
   name: 'La Biblioteca',
@@ -17,12 +17,12 @@ Room buildSala1(Variation v) => Room(
       "a mig Sant Petersburg i ho apuntava tot. Aquí guardava una xifra, "
       "tancada darrere de tres enigmes: el registre, la reixa i la "
       "prestatgeria.",
-  digit: 3,
+  digit: digit,
   digitPosition: 2,
   puzzles: [
     _registre(v.rng('1.1')),
     _reixa(v.rng('1.2')),
-    _prestatgeria(v.rng('1.3')),
+    _prestatgeria(v.rng('1.3'), digit),
   ],
 );
 
@@ -219,7 +219,7 @@ const _formes = [
   ],
 ];
 
-Puzzle _prestatgeria(Rng r) {
+Puzzle _prestatgeria(Rng r, int digit) {
   final xs = r.pick(_volums);
   final forma = r.pick(_formes);
   final blocs = [
@@ -321,7 +321,7 @@ Puzzle _prestatgeria(Rng r) {
         "Les classes d'equivalència sempre formen una partició: aquí és on "
         "es troben els conjunts i l'aritmètica modular. Quan l'últim "
         "volum encaixa, el calaix del mig s'obre sol. Al fons hi ha una "
-        "fitxa de fusta amb un 3 gravat.",
+        "fitxa de fusta amb un $digit gravat.",
   );
 }
 

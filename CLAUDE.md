@@ -66,6 +66,7 @@ cambra_euler/
 ## 3. Arquitectura i convencions
 
 - **El contingut és dades.** Cap enunciat, pista ni solució ha d'estar escrit dins dels widgets. Tot va a `lib/data/`: un fitxer per sala (`sala1.dart`…, `porta.dart`) amb una funció `Puzzle nom(Rng r)` per puzle, que treu enunciat, passos, pistes i solució dels mateixos paràmetres. `content.dart` hi munta `GameContent`; `texts.dart` té els textos i regles fixos. `lib/core/rng.dart` és el generador determinista (no el canviïs: les partides desades en depenen; ho vigila `test/rng_test.dart`).
+- **Variants.** Cada taula de variants té la fila del PDF en primer lloc; `pdfSeed` (-1) la força (tests de la §4, captures, partides antigues). Les solucions es **calculen** amb `core/modular.dart`, mai a mà. Les xifres de les sales i les condicions de la porta surten d'un sol objecte, `Pany` (`lib/data/porta.dart`), que llegeixen sales, porta, quadern, intro i portada. Per afegir una variant, afegeix una fila a la taula; `test/content_test.dart` la valida per a 200 llavors.
 - **La validació és una funció pura i té test.** Cada mecànica interactiva té un validador pur a `lib/core/` o al model, i test a `test/`.
 - **Extensió del motor (Fase 2):** converteix `PuzzleStep` en una jerarquia `sealed class PuzzleStep`.
   - Subclasses actuals: `CodeStep`, `TextStep`, `ChoiceStep`.

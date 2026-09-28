@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
-import '../data/content.dart';
 
 /// Pantalla d'introducció: el text s'escriu lletra a lletra i es pot saltar.
 /// Es tanca (pop) quan el jugador prem «Endavant».
 class IntroScreen extends StatefulWidget {
-  const IntroScreen({super.key, this.text = introText});
+  const IntroScreen({super.key, required this.text});
   final String text;
 
   @override

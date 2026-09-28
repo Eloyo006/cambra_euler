@@ -45,6 +45,61 @@ void main() {
     });
   });
 
+  group('Variants', () {
+    // Moltes llavors: cobreix totes les combinacions de variants probables.
+    final seeds = [for (var s = 0; s < 200; s++) s * 7919];
+    List<String> ids(GameContent c) => [
+      for (final r in c.rooms) ...r.puzzles.map((x) => x.id),
+      c.finalPuzzle.id,
+    ];
+
+    test('la mateixa llavor genera el mateix contingut', () {
+      final a = GameContent.forSeed(99);
+      GameContent.forSeed(100); // buida la memòria cau
+      final b = GameContent.forSeed(99);
+      expect(ids(b), ids(a));
+      for (final id in a.puzzlesById.keys) {
+        expect(b.puzzlesById[id]!.statement, a.puzzlesById[id]!.statement);
+      }
+      expect(b.secretBookText, a.secretBookText);
+    });
+
+    test('totes les llavors tenen els mateixos puzles i sales', () {
+      // El progrés desat va per id: no pot dependre de la variant.
+      final base = ids(testContent);
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        expect(ids(c), base, reason: 'llavor $seed');
+        expect(
+          [for (final r in c.rooms) r.id],
+          ['sala1', 'sala2', 'sala3'],
+          reason: 'llavor $seed',
+        );
+        expect(
+          c.puzzlesById[secretBookUnlockedBy],
+          isNotNull,
+          reason: 'llavor $seed',
+        );
+      }
+    });
+
+    test('a cada llavor, cada pas accepta la seva solució', () {
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        for (final pz in c.puzzlesById.values) {
+          expect(pz.hints, hasLength(3), reason: '${pz.id} · llavor $seed');
+          for (final s in pz.steps) {
+            expect(
+              s.check(solutionOf(s)),
+              isTrue,
+              reason: '${pz.id} · llavor $seed',
+            );
+          }
+        }
+      }
+    });
+  });
+
   group('Sala 1 · Conjunts', () {
     test('1.1 Venn: |A∪B| = 36 i cap = 4', () {
       const total = 40, a = 25, b = 18, ab = 7;

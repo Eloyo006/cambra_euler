@@ -10,8 +10,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../../test/helpers.dart';
 import 'package:cambra_euler/core/theme.dart';
-import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/screens/puzzle_screen.dart';
 import 'package:cambra_euler/screens/room_screen.dart';
 import 'package:cambra_euler/state/game_state.dart';
@@ -49,9 +49,7 @@ Future<void> _pump(WidgetTester tester, Widget screen) async {
     storageKey: jsonEncode(_state.toJson()),
   });
   final prefs = await SharedPreferences.getInstance();
-  final container = ProviderContainer(
-    overrides: [prefsProvider.overrideWithValue(prefs)],
-  );
+  final container = ProviderContainer(overrides: testOverrides(prefs));
   addTearDown(container.dispose);
   await tester.pumpWidget(
     UncontrolledProviderScope(

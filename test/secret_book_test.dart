@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'helpers.dart';
 import 'package:cambra_euler/core/theme.dart';
 import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/screens/puzzle_screen.dart';
@@ -19,9 +20,7 @@ Future<ProviderContainer> pumpWith(
     storageKey: jsonEncode(state.toJson()),
   });
   final prefs = await SharedPreferences.getInstance();
-  final container = ProviderContainer(
-    overrides: [prefsProvider.overrideWithValue(prefs)],
-  );
+  final container = ProviderContainer(overrides: testOverrides(prefs));
   addTearDown(container.dispose);
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -63,7 +62,7 @@ void main() {
     await pumpWith(
       tester,
       const GameState(),
-      const PuzzleScreen(puzzle: finalPuzzle),
+      PuzzleScreen(puzzle: finalPuzzle),
     );
     expect(find.text(secretBookText), findsNothing);
     expect(find.text(secretBookMissing), findsOneWidget);
@@ -74,7 +73,7 @@ void main() {
         progress: {unlocker.id: unlocker.steps.length},
         bookOpened: true,
       ),
-      const PuzzleScreen(puzzle: finalPuzzle, key: ValueKey('obert')),
+      PuzzleScreen(puzzle: finalPuzzle, key: const ValueKey('obert')),
     );
     expect(find.text(secretBookText), findsOneWidget);
   });

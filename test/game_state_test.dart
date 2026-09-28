@@ -13,9 +13,7 @@ Future<ProviderContainer> makeContainer([
 ]) async {
   SharedPreferences.setMockInitialValues(init);
   final prefs = await SharedPreferences.getInstance();
-  final c = ProviderContainer(
-    overrides: [prefsProvider.overrideWithValue(prefs)],
-  );
+  final c = ProviderContainer(overrides: testOverrides(prefs));
   addTearDown(c.dispose);
   return c;
 }
@@ -200,6 +198,51 @@ void main() {
       expect(s.elapsed, 90);
       expect(s.puzzleTimes, isEmpty);
       expect(s.puzzleTime(p), 0);
+    });
+  });
+
+  group('llavor de la partida', () {
+    test('una partida nova fa servir la llavor del proveïdor', () async {
+      final c = await makeContainer();
+      expect(c.read(gameProvider).seed, testSeed);
+      expect(c.read(gameProvider).content.seed, testSeed);
+    });
+
+    test('la llavor es desa i es recupera', () async {
+      final saved = jsonEncode(const GameState(seed: 777).toJson());
+      final c = await makeContainer({storageKey: saved});
+      expect(c.read(gameProvider).seed, 777);
+      c.read(gameProvider.notifier).start();
+      c.read(gameProvider.notifier).pause();
+      final raw = c.read(prefsProvider).getString(storageKey)!;
+      expect(jsonDecode(raw)['seed'], 777);
+    });
+
+    test('una partida desada sense llavor fa servir la 0', () async {
+      final old = jsonEncode({'elapsed': 90});
+      final c = await makeContainer({storageKey: old});
+      expect(c.read(gameProvider).seed, 0);
+    });
+
+    test('«Nova partida» tria una llavor nova', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var next = 10;
+      final c = ProviderContainer(
+        overrides: [
+          prefsProvider.overrideWithValue(prefs),
+          newSeedProvider.overrideWithValue(() => next++),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(gameProvider).seed, 10);
+      c.read(gameProvider.notifier).reset();
+      expect(c.read(gameProvider).seed, 11);
+    });
+
+    test('copyWith conserva la llavor', () {
+      const s = GameState(seed: 5);
+      expect(s.copyWith(elapsed: 3).seed, 5);
     });
   });
 

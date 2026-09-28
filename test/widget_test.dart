@@ -1,3 +1,4 @@
+import 'helpers.dart';
 import 'package:cambra_euler/core/theme.dart';
 import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/main.dart';
@@ -18,10 +19,7 @@ Future<SharedPreferences> pumpApp(
   SharedPreferences.setMockInitialValues(prefs);
   final p = await SharedPreferences.getInstance();
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: [prefsProvider.overrideWithValue(p)],
-      child: const CambraApp(),
-    ),
+    ProviderScope(overrides: testOverrides(p), child: const CambraApp()),
   );
   return p;
 }
@@ -96,9 +94,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [prefsProvider.overrideWithValue(prefs)],
-    );
+    final container = ProviderContainer(overrides: testOverrides(prefs));
     addTearDown(container.dispose);
     container
         .read(rankingProvider.notifier)

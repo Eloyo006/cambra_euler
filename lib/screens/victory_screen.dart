@@ -68,11 +68,11 @@ class VictoryScreen extends ConsumerWidget {
                     ),
                     if (s.bonus > 0)
                       _Row('Bonificació', '−${formatTime(s.bonus)}'),
-                    for (final r in rooms)
+                    for (final r in s.content.rooms)
                       _Row('Pistes · ${r.name}', '${s.roomHints(r)}'),
                     _Row(
-                      'Pistes · ${finalPuzzle.title}',
-                      '${s.hintsUsed(finalPuzzle)}',
+                      'Pistes · ${s.content.finalPuzzle.title}',
+                      '${s.hintsUsed(s.content.finalPuzzle)}',
                     ),
                   ],
                 ),
@@ -88,7 +88,7 @@ class VictoryScreen extends ConsumerWidget {
               Card(
                 child: Column(
                   children: [
-                    for (final r in rooms)
+                    for (final r in s.content.rooms)
                       for (final p in r.puzzles)
                         // L'opcional només surt si s'hi ha jugat.
                         if (!p.optional || s.puzzleTime(p) > 0)
@@ -97,8 +97,8 @@ class VictoryScreen extends ConsumerWidget {
                             formatTime(s.puzzleTime(p)),
                           ),
                     _Row(
-                      finalPuzzle.title,
-                      formatTime(s.puzzleTime(finalPuzzle)),
+                      s.content.finalPuzzle.title,
+                      formatTime(s.puzzleTime(s.content.finalPuzzle)),
                     ),
                   ],
                 ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme.dart';
-import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
 import '../state/settings.dart';
@@ -28,7 +27,7 @@ class MapScreen extends ConsumerWidget {
           children: [
             _LockDisplay(state: s),
             const SizedBox(height: 16),
-            for (final r in rooms) _RoomCard(room: r, state: s),
+            for (final r in s.content.rooms) _RoomCard(room: r, state: s),
             const SizedBox(height: 8),
             _DoorCard(state: s),
           ],
@@ -41,12 +40,13 @@ class MapScreen extends ConsumerWidget {
 /// Les xifres del pany que ja s'han guanyat. a i c es descobreixen a la porta.
 List<String> lockDigits(GameState s) {
   final digits = List.filled(5, '_');
-  for (final r in rooms) {
+  final content = s.content;
+  for (final r in content.rooms) {
     if (s.isRoomSolved(r)) digits[r.digitPosition - 1] = '${r.digit}';
   }
-  final door = s.stepsDone(finalPuzzle);
-  if (door >= 1) digits[0] = finalPuzzle.steps[0].solutionLabel;
-  if (door >= 2) digits[2] = finalPuzzle.steps[1].solutionLabel;
+  final door = s.stepsDone(content.finalPuzzle);
+  if (door >= 1) digits[0] = content.finalPuzzle.steps[0].solutionLabel;
+  if (door >= 2) digits[2] = content.finalPuzzle.steps[1].solutionLabel;
   return digits;
 }
 
@@ -183,7 +183,8 @@ class _DoorCard extends StatelessWidget {
         onTap: open
             ? () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const PuzzleScreen(puzzle: finalPuzzle),
+                  builder: (_) =>
+                      PuzzleScreen(puzzle: state.content.finalPuzzle),
                 ),
               )
             : null,
@@ -203,7 +204,10 @@ class _DoorCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(finalPuzzle.title, style: text.titleMedium),
+                    Text(
+                      state.content.finalPuzzle.title,
+                      style: text.titleMedium,
+                    ),
                     Text(
                       open
                           ? 'Ja tens les tres xifres. Calcula a i c.'

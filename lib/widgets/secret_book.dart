@@ -40,7 +40,7 @@ class _SecretBookCardState extends ConsumerState<SecretBookCard>
       builder: (ctx) => AlertDialog(
         icon: const Icon(Icons.menu_book, color: AppColors.gold, size: 40),
         title: const Text("El quadern d'Euler"),
-        content: const Text(secretBookText),
+        content: Text(ref.read(gameProvider).content.secretBookText),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(ctx),

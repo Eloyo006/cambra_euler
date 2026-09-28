@@ -1,5 +1,5 @@
 // Flux complet a través de la UI: inici → sala → puzle → pista → resolució.
-import 'package:cambra_euler/data/content.dart';
+import 'helpers.dart';
 import 'package:cambra_euler/main.dart';
 import 'package:cambra_euler/state/game_state.dart';
 import 'package:flutter/material.dart';
@@ -30,9 +30,7 @@ void main() {
 
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [prefsProvider.overrideWithValue(prefs)],
-    );
+    final container = ProviderContainer(overrides: testOverrides(prefs));
     addTearDown(container.dispose);
     await tester.pumpWidget(
       UncontrolledProviderScope(container: container, child: const CambraApp()),

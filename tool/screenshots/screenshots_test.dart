@@ -10,8 +10,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../../test/helpers.dart';
 import 'package:cambra_euler/core/theme.dart';
-import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/screens/home_screen.dart';
 import 'package:cambra_euler/screens/map_screen.dart';
 import 'package:cambra_euler/screens/puzzle_screen.dart';
@@ -64,7 +64,7 @@ Future<void> shoot(
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [prefsProvider.overrideWithValue(prefs)],
+      overrides: testOverrides(prefs),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: screenshotTheme(),
@@ -258,7 +258,7 @@ void main() {
           finalPuzzle.id: 2,
         },
       ),
-      const PuzzleScreen(puzzle: finalPuzzle),
+      PuzzleScreen(puzzle: finalPuzzle),
       interact: () async {
         await t.drag(find.byType(ListView).first, const Offset(0, -330));
       },

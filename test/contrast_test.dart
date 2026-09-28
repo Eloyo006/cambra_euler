@@ -1,7 +1,7 @@
 // Contrast mínim AA (WCAG 2.1): 4,5 per a text normal, 3 per a elements
 // gràfics i text gran.
+import 'helpers.dart';
 import 'package:cambra_euler/core/theme.dart';
-import 'package:cambra_euler/data/content.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 

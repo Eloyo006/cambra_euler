@@ -133,14 +133,14 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
                 body: _puzzle.theory!,
               ),
             ],
-            if (_puzzle.id == finalPuzzle.id) ...[
+            if (_puzzle.id == s.content.finalPuzzle.id) ...[
               const SizedBox(height: 12),
               s.bookOpened
-                  ? const _InfoCard(
+                  ? _InfoCard(
                       icon: Icons.auto_stories,
                       color: AppColors.gold,
                       title: "El quadern d'Euler",
-                      body: secretBookText,
+                      body: s.content.secretBookText,
                     )
                   : _InfoCard(
                       icon: Icons.help_outline,

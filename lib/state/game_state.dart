@@ -17,12 +17,19 @@ final prefsProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('prefsProvider sense override'),
 );
 
+/// Llavor de cada partida nova. Els tests el poden substituir per fixar-la.
+final newSeedProvider = Provider<int Function()>(
+  (ref) =>
+      () => math.Random().nextInt(0x7FFFFFFF),
+);
+
 final gameProvider = NotifierProvider<GameNotifier, GameState>(
   GameNotifier.new,
 );
 
 class GameState {
   const GameState({
+    this.seed = 0,
     this.progress = const {},
     this.hints = const {},
     this.puzzleTimes = const {},
@@ -33,6 +40,12 @@ class GameState {
     this.bookOpened = false,
     this.finishedAt,
   });
+
+  /// Llavor de la partida: decideix quina variant surt de cada puzle.
+  final int seed;
+
+  /// Contingut d'aquesta partida (sales, puzles, porta…).
+  GameContent get content => GameContent.forSeed(seed);
 
   /// Passos resolts per puzle (id → nombre de passos encertats).
   final Map<String, int> progress;
@@ -60,7 +73,7 @@ class GameState {
   final String? finishedAt;
 
   /// Bonificació dels puzles opcionals resolts, en segons.
-  int get bonus => puzzlesById.values
+  int get bonus => content.puzzlesById.values
       .where((p) => p.optional && isSolved(p))
       .fold(0, (s, p) => s + p.bonus);
 
@@ -68,7 +81,8 @@ class GameState {
   int get total => math.max(0, elapsed + penalty - bonus);
 
   /// El llibre apareix a la Biblioteca quan es resol el puzle 2.3.
-  bool get bookAvailable => isSolved(puzzlesById[secretBookUnlockedBy]!);
+  bool get bookAvailable =>
+      isSolved(content.puzzlesById[secretBookUnlockedBy]!);
 
   int stepsDone(Puzzle p) => progress[p.id] ?? 0;
   bool isSolved(Puzzle p) => stepsDone(p) >= p.steps.length;
@@ -84,7 +98,7 @@ class GameState {
   /// Una sala està superada quan tots els puzles obligatoris ho estan.
   bool isRoomSolved(Room r) =>
       r.puzzles.where((p) => !p.optional).every(isSolved);
-  bool get allRoomsSolved => rooms.every(isRoomSolved);
+  bool get allRoomsSolved => content.rooms.every(isRoomSolved);
 
   /// Un puzle s'obre quan l'anterior de la sala està resolt.
   bool isUnlocked(Room r, Puzzle p) {
@@ -106,6 +120,7 @@ class GameState {
     bool? bookOpened,
     String? finishedAt,
   }) => GameState(
+    seed: seed,
     progress: progress ?? this.progress,
     hints: hints ?? this.hints,
     puzzleTimes: puzzleTimes ?? this.puzzleTimes,
@@ -118,6 +133,7 @@ class GameState {
   );
 
   Map<String, dynamic> toJson() => {
+    'seed': seed,
     'progress': progress,
     'hints': hints,
     'puzzleTimes': puzzleTimes,
@@ -130,6 +146,8 @@ class GameState {
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
+    // Les partides desades abans de les variants no en tenen: llavor 0.
+    seed: j['seed'] as int? ?? 0,
     progress: Map<String, int>.from(j['progress'] as Map? ?? const {}),
     hints: Map<String, int>.from(j['hints'] as Map? ?? const {}),
     // Les partides desades abans d'afegir-lo no el tenen: comença buit.
@@ -158,14 +176,17 @@ class GameNotifier extends Notifier<GameState> {
   GameState build() {
     ref.onDispose(() => _timer?.cancel());
     final raw = _prefs.getString(storageKey);
-    if (raw == null) return const GameState();
+    if (raw == null) return _newGame();
     try {
       return GameState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       // Format desconegut: es comença de nou.
-      return const GameState();
+      return _newGame();
     }
   }
+
+  /// Partida nova, amb una llavor nova (i, per tant, variants noves).
+  GameState _newGame() => GameState(seed: ref.read(newSeedProvider)());
 
   void _save() => _prefs.setString(storageKey, jsonEncode(state.toJson()));
 
@@ -212,7 +233,7 @@ class GameNotifier extends Notifier<GameState> {
   @visibleForTesting
   void tick() {
     final id = _openPuzzle;
-    final p = id == null ? null : puzzlesById[id];
+    final p = id == null ? null : state.content.puzzlesById[id];
     state = state.copyWith(
       elapsed: state.elapsed + 1,
       puzzleTimes: p == null || state.isSolved(p)
@@ -230,7 +251,7 @@ class GameNotifier extends Notifier<GameState> {
 
     final progress = {...state.progress, p.id: state.stepsDone(p) + 1};
     state = state.copyWith(progress: progress);
-    if (p.id == finalPuzzle.id && state.isSolved(p)) {
+    if (p.id == state.content.finalPuzzle.id && state.isSolved(p)) {
       state = state.copyWith(
         finished: true,
         finishedAt: DateTime.now().toIso8601String(),
@@ -272,7 +293,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void reset() {
     leave();
-    state = const GameState();
+    state = _newGame();
     _save();
   }
 }

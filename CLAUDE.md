@@ -20,7 +20,7 @@
 |---|---|
 | Plataforma | **Android** (APK). 100 % **offline**: sense backend, sense Supabase i sense cap xarxa. |
 | Idioma | Tota la UI en **català**. |
-| Enunciats | **Fixos**, no aleatoris. El contingut viu a `lib/data/content.dart`. |
+| Enunciats | **Variables per partida**: cada partida té una llavor (`GameState.seed`, aleatòria en fer «Nova partida») i el contingut es genera a partir d'ella (`GameContent.forSeed`). Les variants surten de **taules curades a mà**, mai de números a l'atzar sense control. Els ids dels puzles no canvien mai entre variants. |
 | Estat | `flutter_riverpod` 2.x (`Notifier`) + `shared_preferences`. No afegeixis Hive, Bloc ni go_router. |
 | Pistes | 3 nivells per puzle ("Suggeriment", "Teoria", "Gairebé la solució"). Penalització de **+30, +60 i +120 s**. |
 | Temps | Cronòmetre que compta endavant. El widget `GameClock` mostra el temps total i, dins d'un enigma, també el temps d'aquell enigma (temps real a dins, acumulat entre visites i congelat en resoldre'l, més la penalització de les seves pistes). El temps total és el temps real més les penalitzacions. |
@@ -65,7 +65,7 @@ cambra_euler/
 
 ## 3. Arquitectura i convencions
 
-- **El contingut és dades.** Cap enunciat, pista ni solució ha d'estar escrit dins dels widgets. Tot va a `lib/data/content.dart`, o a un fitxer per sala dins de `lib/data/` si creix massa.
+- **El contingut és dades.** Cap enunciat, pista ni solució ha d'estar escrit dins dels widgets. Tot va a `lib/data/`: un fitxer per sala (`sala1.dart`…, `porta.dart`) amb una funció `Puzzle nom(Rng r)` per puzle, que treu enunciat, passos, pistes i solució dels mateixos paràmetres. `content.dart` hi munta `GameContent`; `texts.dart` té els textos i regles fixos. `lib/core/rng.dart` és el generador determinista (no el canviïs: les partides desades en depenen; ho vigila `test/rng_test.dart`).
 - **La validació és una funció pura i té test.** Cada mecànica interactiva té un validador pur a `lib/core/` o al model, i test a `test/`.
 - **Extensió del motor (Fase 2):** converteix `PuzzleStep` en una jerarquia `sealed class PuzzleStep`.
   - Subclasses actuals: `CodeStep`, `TextStep`, `ChoiceStep`.
@@ -86,7 +86,7 @@ cambra_euler/
 
 ## 4. Contingut i solucions (font de veritat)
 
-Totes les solucions estan verificades a `test/content_test.dart`. **No les canviïs.**
+Totes les solucions estan verificades a `test/content_test.dart`. **No les canviïs.** Amb les variants per partida, aquests són els valors del PDF del professor: han de ser sempre **una de les variants** de cada taula.
 
 **Lògica del codi final.** Cada sala dona una xifra del pany `a 3 c 5 4`:
 - Sala 1 → «3» (posició 2)

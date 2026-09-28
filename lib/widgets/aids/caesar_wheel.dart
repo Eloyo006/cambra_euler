@@ -67,7 +67,13 @@ class _CaesarWheelState extends State<CaesarWheel> {
                 _setShift(_dragStartShift - (_dragAngle / _slot).round());
               },
               child: ExcludeSemantics(
-                child: CustomPaint(size: size, painter: _WheelPainter(_shift)),
+                child: CustomPaint(
+                  size: size,
+                  painter: _WheelPainter(
+                    _shift,
+                    DefaultTextStyle.of(context).style,
+                  ),
+                ),
               ),
             );
           },
@@ -110,8 +116,9 @@ class _CaesarWheelState extends State<CaesarWheel> {
 String innerLetter(int i, int k) => alphabet27[mod(i + k, alphabet27.length)];
 
 class _WheelPainter extends CustomPainter {
-  _WheelPainter(this.shift);
+  _WheelPainter(this.shift, this.base);
   final int shift;
+  final TextStyle base;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -162,7 +169,7 @@ class _WheelPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: s,
-        style: TextStyle(
+        style: base.copyWith(
           color: color,
           fontSize: size,
           fontWeight: FontWeight.bold,

@@ -8,17 +8,34 @@ const List<int> hintPenalties = [30, 60, 120];
 const List<String> hintLabels = ['Suggeriment', 'Teoria', 'Gairebé la solució'];
 
 const String introText =
-    "Leonhard Euler va deixar tancada la seva cambra de treball amb un pany "
-    "de cinc xifres. Sobre la porta només es llegeix: «a 3 c 5 4».\n\n"
-    "Cada una de les tres sales del vestíbul guarda una xifra del pany. "
-    "Resol els enigmes de conjunts, d'aritmètica modular i d'inducció, "
-    "i després calcula a i c per obrir la porta.\n\n"
-    "El rellotge corre. Cada pista que demanis afegeix temps.";
+    "Sant Petersburg, 18 de setembre de 1783. Leonhard Euler ha mort aquesta "
+    "tarda, i tu, el seu ajudant, ets l'única persona que queda a la casa.\n\n"
+    "A la seva cambra de treball hi ha l'últim manuscrit d'Euler. A trenc "
+    "d'alba, l'Acadèmia de Ciències vindrà a segellar-la, i ningú no el "
+    "tornarà a llegir. La porta té un pany de cinc xifres. Només s'hi llegeix "
+    "«a 3 c 5 4».\n\n"
+    "Els últims anys, Euler ja no hi veia, i ho guardava tot al cap. Va "
+    "amagar cada xifra que falta en una sala de la casa i hi va deixar "
+    "enigmes, perquè només pogués entrar qui els entengués: la Biblioteca "
+    "(conjunts), la Sala dels Rellotges (aritmètica modular) i la Torre del "
+    "Dòmino (inducció). Les dues lletres, a i c, les hauràs de calcular tu.\n\n"
+    "La nit s'acaba. Cada pista que demanis t'acosta a l'alba.";
+
+/// Resum curt per a la portada; la història sencera és a [introText].
+const String homeBlurb =
+    "Sant Petersburg, 1783. Euler acaba de morir, i a trenc d'alba "
+    "l'Acadèmia segellarà la seva cambra de treball. Tens una nit per trobar "
+    "les xifres del pany «a 3 c 5 4» i salvar-ne l'últim manuscrit.";
 
 const String victoryText =
-    "«Llegiu Euler, llegiu Euler: és el mestre de tots nosaltres.»\n"
-    "Has obert la cambra. Euler estaria orgullós: conjunts, congruències i "
-    "inducció, tot en una sola tarda.";
+    "La porta cedeix. Sobre la taula, entre espelmes consumides, hi ha el "
+    "manuscrit i una nota amb la lletra tremolosa d'Euler:\n\n"
+    "«Si llegeixes això, has entès que els conjunts, els residus i la "
+    "inducció són una mateixa manera de pensar. Continua tu el que jo no he "
+    "pogut acabar.»\n\n"
+    "Just quan surts amb el manuscrit sota el braç, se sent la carrossa de "
+    "l'Acadèmia. «Llegiu Euler, llegiu Euler: és el mestre de tots "
+    "nosaltres.»";
 
 const List<Room> rooms = [
   // ───────────────────────────── Sala 1 ─────────────────────────────
@@ -29,31 +46,41 @@ const List<Room> rooms = [
     topic: 'Teoria de conjunts',
     color: AppColors.library,
     intro:
-        "Prestatges fins al sostre i un fitxer ple de diagrames de Venn. "
-        "Algú ha classificat els lectors en conjunts…",
+        "Prestatges fins al sostre i olor de paper vell. Euler deixava llibres "
+        "a mig Sant Petersburg i ho apuntava tot. Aquí guardava una xifra, "
+        "tancada darrere de tres enigmes: el registre, la reixa i la "
+        "prestatgeria.",
     digit: 3,
     digitPosition: 2,
     puzzles: [
       Puzzle(
         id: '1.1',
-        title: 'El cens de lectors',
+        title: 'El registre de préstecs',
         source: 'Apunts FOMA · Conjunts',
         statement:
-            "La Biblioteca té 40 alumnes inscrits. 25 programen en "
-            "Flutter (conjunt A), 18 en Angular (conjunt B) i 7 en tots dos.",
+            "Sobre el faristol hi ha el registre de préstecs d'Euler, tancat "
+            "amb una sivella de números. A la primera pàgina diu: «40 "
+            "lectors de l'Acadèmia. 25 s'han endut llibres en llatí "
+            "(conjunt A), 18 en grec (conjunt B) i 7 en totes dues "
+            "llengües.» La sivella s'obre amb el nombre de lectors que "
+            "s'han endut algun llibre.",
         steps: [
           VennStep(
             prompt:
-                'Toca cada regió del diagrama i escriu-hi quants alumnes hi ha.',
+                'Toca cada regió del diagrama i escriu-hi quants lectors hi ha.',
             regions: [18, 7, 11, 4],
             labels: ['Només A', 'A ∩ B', 'Només B', 'Cap dels dos'],
           ),
           CodeStep(
             prompt:
-                'Quants alumnes programen en Flutter o en Angular? |A ∪ B| = ?',
+                'Quants lectors s\'han endut llibres en llatí o en grec? '
+                '|A ∪ B| = ?',
             solution: '36',
           ),
         ],
+        outro:
+            "La sivella fa clic. Entre les pàgines del registre hi ha una "
+            "clau de ferro: la de la reixa del gabinet de lectura.",
         hints: [
           "Comença pel centre: els que fan tots dos. Després, «només A» és "
               "25 menys els del centre.",
@@ -64,12 +91,14 @@ const List<Room> rooms = [
       ),
       Puzzle(
         id: '1.2',
-        title: 'Les portes de De Morgan',
+        title: 'La reixa de De Morgan',
         source: 'Apunts FOMA · Conjunts',
         statement:
-            "Una porta de la Biblioteca porta gravat: «Només passa qui "
-            "no és ni d'A ni de B». És a dir, la porta s'obre amb (A ∪ B)′. "
-            "Però el tauler només té fitxes de complementaris: A′ i B′.",
+            "La clau entra a la reixa del gabinet de lectura, però no gira. "
+            "Sobre el pany hi ha gravat: «Només passa qui no ha llegit ni "
+            "llatí ni grec», és a dir, (A ∪ B)′. El mecanisme es programa "
+            "amb fitxes, i les que hi ha a la safata parlen sobretot de "
+            "complementaris: A′ i B′.",
         steps: [
           ExpressionStep(
             prompt:
@@ -81,13 +110,17 @@ const List<Room> rooms = [
           ),
           ExpressionStep(
             prompt:
-                'La segona porta demana (A ∩ B)′. Construeix-ne una '
-                'expressió equivalent.',
+                'La reixa té un segon forrellat, que demana (A ∩ B)′. '
+                'Construeix-ne una expressió equivalent.',
             target: '(A∩B)′',
             solution: 'A′ ∪ B′',
             tokens: ['A′', 'B′', 'A', 'B', '∩', '∪', '(', ')'],
           ),
         ],
+        outro:
+            "La reixa s'obre amb un grinyol. A dins, els sis volums de "
+            "l'obra d'Euler han caigut per terra davant d'una prestatgeria "
+            "de tres calaixos.",
         hints: [
           "Pensa en un element que no és a A ∪ B. Pot ser a A? I a B?",
           "Lleis de De Morgan: el complementari intercanvia ∪ i ∩, i "
@@ -100,9 +133,10 @@ const List<Room> rooms = [
         title: 'La prestatgeria',
         source: 'Apunts FOMA · Particions i relacions d\'equivalència',
         statement:
-            "Els llibres numerats de l'1 al 6 s'han de guardar en tres caixes. "
-            "Perquè sigui una partició, cap caixa pot quedar buida i cada "
-            "llibre ha d'estar en exactament una caixa.",
+            "Els volums, numerats de l'1 al 6, s'han de tornar a guardar als "
+            "tres calaixos. A la fusta, Euler hi va escriure la condició: "
+            "cap calaix no pot quedar buit, i cada volum ha d'anar en "
+            "exactament un calaix. És a dir, ha de ser una partició.",
         steps: [
           ChoiceStep(
             prompt: 'Quina d\'aquestes és una partició de {1, …, 6}?',
@@ -116,15 +150,16 @@ const List<Room> rooms = [
           ),
           PartitionStep(
             prompt:
-                'Ara fes-ne una tu: arrossega els sis llibres a les tres '
-                'caixes. Qualsevol partició val.',
+                'Ara fes-ne una tu: arrossega els sis volums als tres '
+                'calaixos. De moment, qualsevol partició val.',
             items: [1, 2, 3, 4, 5, 6],
             boxes: 3,
           ),
           PartitionStep(
             prompt:
-                'La bibliotecària ordena per la relació a ~ b ⇔ a ≡ b (mod 3). '
-                'Posa a cada caixa una classe d\'equivalència.',
+                'Els calaixos no s\'obren: Euler hi guardava els volums amb '
+                'la relació a ~ b ⇔ a ≡ b (mod 3). Posa una classe '
+                'd\'equivalència a cada calaix.',
             items: [1, 2, 3, 4, 5, 6],
             boxes: 3,
             target: [
@@ -151,7 +186,9 @@ const List<Room> rooms = [
         ],
         outro:
             "Les classes d'equivalència sempre formen una partició: aquí és on "
-            "es troben els conjunts i l'aritmètica modular.",
+            "es troben els conjunts i l'aritmètica modular. Quan l'últim "
+            "volum encaixa, el calaix del mig s'obre sol. Al fons hi ha una "
+            "fitxa de fusta amb un 3 gravat.",
       ),
     ],
   ),
@@ -164,8 +201,9 @@ const List<Room> rooms = [
     topic: 'Aritmètica modular',
     color: AppColors.clocks,
     intro:
-        "Desenes de rellotges marquen hores diferents. Cap passa de les 12: "
-        "quan hi arriben, tornen a començar.",
+        "Desenes de rellotges, i cap no marca la mateixa hora. Euler deia que "
+        "el temps és el millor exemple de residu: quan arriba a les 12, torna "
+        "a començar. El rellotger de la casa hi va deixar la feina a mitges…",
     digit: 5,
     digitPosition: 4,
     puzzles: [
@@ -174,8 +212,12 @@ const List<Room> rooms = [
         title: 'La taula del rellotger',
         source: 'Llista d\'exercicis · Ex. 1',
         statement:
-            "Sobre el taulell hi ha la taula de multiplicar de "
-            "ℤ₅ = {1, …, 5}, amb 5 ≡ 0, a mig omplir. Al costat, la de ℤ₆.",
+            "El gran rellotge de peu està aturat, i el seu mecanisme té un "
+            "cadenat. Sobre el taulell, el rellotger va deixar les taules "
+            "d'engranatges: la de multiplicar de ℤ₅ = {1, …, 5}, amb "
+            "5 ≡ 0, a mig omplir, i la de ℤ₆. Per tornar-lo a posar en "
+            "marxa cal saber quines rodes tenen parella: quins elements "
+            "tenen invers.",
         theory:
             "Un element x té invers a ℤₙ si existeix y amb x·y ≡ 1 (mod n). "
             "A la taula, busca on surt un 1.",
@@ -207,14 +249,19 @@ const List<Room> rooms = [
           ),
           WheelLockStep(
             prompt:
-                'L\'últim cadenat demana x amb 2x ≡ 1 (mod 6). Gira la roda '
-                'o, si creus que no n\'hi ha cap, prem «No té solució».',
+                'El cadenat del rellotge demana x amb 2x ≡ 1 (mod 6). Gira '
+                'la roda o, si creus que no n\'hi ha cap, prem «No té '
+                'solució».',
             symbols: ['1', '2', '3', '4', '5', '6'],
             solution: null,
             wheelCount: 1,
             offerNoSolution: true,
           ),
         ],
+        outro:
+            "No hi havia cap x: el cadenat era un parany. El rellotge es posa "
+            "en marxa i toca les hores. A la paret, la porta de l'armari del "
+            "rellotger queda entreoberta, però la tanquen dos cadenats més.",
         hints: [
           "Multiplica cada fila per cada columna i queda't amb el residu en "
               "dividir per 5 (si dona 0, escriu 5).",
@@ -226,11 +273,13 @@ const List<Room> rooms = [
       ),
       Puzzle(
         id: '2.2',
-        title: 'Els panys de control',
+        title: 'L\'armari del rellotger',
         source: 'Llista d\'exercicis · Ex. 2 i 3',
         statement:
-            "Dos cadenats tanquen l'armari del rellotger. Totes les "
-            "condicions són mòdul 5.",
+            "L'armari on el rellotger guardava la correspondència d'Euler "
+            "té dos cadenats. A la porta hi ha enganxada una nota: «Totes "
+            "les condicions són mòdul 5, com les cinc rodes del meu primer "
+            "rellotge.»",
         steps: [
           WheelLockStep(
             prompt:
@@ -250,6 +299,9 @@ const List<Room> rooms = [
             success: 'X = i, i és l\'única: 3 té un sol invers mòdul 5.',
           ),
         ],
+        outro:
+            "L'armari s'obre. Al calaix de baix hi ha tres cartes lligades "
+            "amb una cinta, cadascuna escrita en un xifrat diferent.",
         hints: [
           "Substitueix el que ja saps: a = 4 i c = 1.",
           "3b ≡ 1 vol dir que b és l'invers de 3 mòdul 5.",
@@ -258,11 +310,13 @@ const List<Room> rooms = [
       ),
       Puzzle(
         id: '2.3',
-        title: 'El missatge xifrat',
+        title: 'Les cartes xifrades',
         source: 'Llista d\'exercicis · Ex. 5, 6, 7 i 8',
         statement:
-            "Al calaix hi ha tres missatges xifrats. Fes servir "
-            "l'alfabet de 27 lletres: A=0, B=1, …, N=13, Ç=14, O=15, …, Z=26.",
+            "Euler s'escrivia amb matemàtics de mitja Europa, i als més "
+            "curiosos els contestava en xifrat. Per llegir les tres cartes, "
+            "fes servir l'alfabet de 27 lletres: A=0, B=1, …, N=13, Ç=14, "
+            "O=15, …, Z=26.",
         theory:
             "Ex. 5 · g(x) = 2x a ℤ₇: g(3) = 6, g(5) = 3, g⁻¹(4) = 2 i "
             "g⁻¹(2) = 1. És bijectiva, però és un xifrat dolent: n'hi ha prou "
@@ -270,7 +324,7 @@ const List<Room> rooms = [
         steps: [
           TextStep(
             prompt:
-                'El missatge ERP_GLD s\'ha xifrat amb César, '
+                'La primera carta només diu ERP_GLD, xifrat amb César, '
                 'e(x) = x + 3 (mod 27). Gira el disc interior fins al '
                 'desplaçament correcte, busca cada lletra xifrada al disc '
                 'interior i llegeix la de fora. Què diu?',
@@ -279,8 +333,9 @@ const List<Room> rooms = [
           ),
           ChoiceStep(
             prompt:
-                'Algú xifra les lletres A–F (A=0, …, F=5) amb '
-                'e(x) = 2x + 1 (mod 6) i envia BDF. Es pot desxifrar?',
+                'La segona és d\'un corresponsal maldestre: xifra les lletres '
+                'A–F (A=0, …, F=5) amb e(x) = 2x + 1 (mod 6) i envia BDF. '
+                'Es pot desxifrar?',
             options: [
               'Sí: és ABC',
               'Sí: és ACE',
@@ -291,7 +346,8 @@ const List<Room> rooms = [
           ),
           TextStep(
             prompt:
-                'L\'últim missatge és YSFMG, xifrat amb l\'afí '
+                'L\'última és la resposta que Euler no va arribar a enviar al '
+                'seu corresponsal de Madrid: YSFMG, xifrat amb l\'afí '
                 'e(x) = 2x + 3 (mod 27). L\'invers de 2 mòdul 27 és 14. '
                 'Què diu?',
             accepted: ['LIBRO'],
@@ -308,7 +364,9 @@ const List<Room> rooms = [
           "x = 14·(y − 3) mod 27. Y = 25 → 14·22 = 308 ≡ 11 = L.",
         ],
         outro:
-            "LIBRO… Potser a la Biblioteca hi ha un llibre que abans no hi era.",
+            "LIBRO: «llibre», en la llengua del seu corresponsal de Madrid. "
+            "Sota la carta hi ha una roda dentada amb un 5 gravat. I potser "
+            "a la Biblioteca hi ha un llibre que abans no hi era…",
       ),
     ],
   ),
@@ -321,8 +379,10 @@ const List<Room> rooms = [
     topic: 'Inducció matemàtica',
     color: AppColors.domino,
     intro:
-        "Una escala de cargol envoltada de fitxes de dòmino dretes. "
-        "Si en cau una, cauen totes… sempre que caigui la primera.",
+        "Una escala de cargol puja fins a l'observatori. Els néts d'Euler hi "
+        "van posar fitxes de dòmino dretes a cada graó. «Si en cau una, "
+        "cauen totes», els deia l'avi, «sempre que caigui la primera.» Cada "
+        "replà és tancat amb una trapa.",
     digit: 4,
     digitPosition: 5,
     puzzles: [
@@ -331,8 +391,11 @@ const List<Room> rooms = [
         title: 'La prova de Bernoulli',
         source: 'Apunts FOMA · Inducció',
         statement:
-            "Cal demostrar per inducció que (1 + a)ⁿ ≥ 1 + an per a "
-            "tot n ≥ 0 i tot a ≥ −1. Algú ha barrejat les línies de la prova.",
+            "Al primer replà, sobre un faristol, hi ha la prova que Euler "
+            "feia copiar als néts: per inducció, (1 + a)ⁿ ≥ 1 + an per a "
+            "tot n ≥ 0 i tot a ≥ −1. El corrent d'aire de l'escala n'ha "
+            "barrejat els fulls, i la trapa no s'obrirà fins que la prova "
+            "torni a estar en ordre.",
         steps: [
           OrderStep(
             prompt:
@@ -375,6 +438,9 @@ const List<Room> rooms = [
             correctIndex: 1,
           ),
         ],
+        outro:
+            "Les fitxes cauen escala amunt, una rere l'altra, i l'última "
+            "empeny la trapa del segon replà.",
         hints: [
           "Una prova per inducció sempre comença pel cas base i acaba amb "
               "la conclusió. Entremig: hipòtesi → pas → càlcul.",
@@ -389,9 +455,11 @@ const List<Room> rooms = [
         title: 'Les torres de Hanoi',
         source: 'Apunts FOMA · Inducció i progressions geomètriques',
         statement:
-            "Cal passar tots els discos de l'agulla de l'esquerra a la de la "
-            "dreta, movent-ne un cada vegada i sense posar mai un disc gran "
-            "sobre un de petit. M(n) és el mínim de moviments amb n discos.",
+            "La trapa cap a l'observatori té un contrapès de discos de "
+            "llautó enfilats en tres agulles. Només s'obre si els discos "
+            "passen de l'agulla de l'esquerra a la de la dreta: d'un en un, "
+            "sense posar mai un disc gran sobre un de petit, i sense ni un "
+            "moviment de més. M(n) és el mínim de moviments amb n discos.",
         theory:
             "Per moure n discos: mou els n − 1 de dalt (M(n−1)), mou el gran "
             "(1) i torna a posar-hi els n − 1 (M(n−1)). "
@@ -421,6 +489,9 @@ const List<Room> rooms = [
             correctIndex: 2,
           ),
         ],
+        outro:
+            "El contrapès baixa i la trapa s'obre. Hanoi també és una suma "
+            "geomètrica: 1 + 2 + 4 + … + 2ⁿ⁻¹ = 2ⁿ − 1.",
         hints: [
           "Amb 3 discos: porta els 2 petits a l'agulla del mig, mou el gran a "
               "la dreta i torna a posar-hi els 2 petits a sobre.",
@@ -435,9 +506,10 @@ const List<Room> rooms = [
         title: 'Els cavalls del mateix color',
         source: 'Apunts FOMA · Inducció (prova falsa)',
         statement:
-            "Un llibre de la torre «demostra» per inducció que tots els "
-            "cavalls són del mateix color. Evidentment és fals: alguna línia "
-            "de la prova no s'aguanta.",
+            "A l'observatori, al costat del telescopi, hi ha el quadern d'un "
+            "deixeble massa confiat que «demostra» per inducció que tots els "
+            "cavalls són del mateix color. Al marge, amb la lletra d'Euler: "
+            "«Troba on falla i tindràs l'última xifra.»",
         steps: [
           TapLineStep(
             prompt: 'Toca la línia on falla la prova.',
@@ -472,6 +544,10 @@ const List<Room> rooms = [
                 "cap cavall, i la cadena es trenca.",
           ),
         ],
+        outro:
+            "Quan passes el full, dins de la tapa del quadern hi ha un 4 "
+            "escrit en tinta vermella. Per la finestra de l'observatori, el "
+            "cel ja comença a clarejar.",
         hints: [
           "El cas base és cert. El problema és en algun pas concret.",
           "El pas inductiu ha de funcionar per a tot k ≥ 1, també per al més petit.",
@@ -486,9 +562,10 @@ const List<Room> rooms = [
         optional: true,
         bonus: 60,
         statement:
-            "Enigma opcional: no cal per obrir la porta, però si el resols "
-            "et resta 60 s del temps. Demostra-ho per inducció fent servir "
-            "congruències.\n"
+            "Enganxada al telescopi hi ha una última nota d'Euler: «Per a qui "
+            "encara tingui temps.» És un enigma opcional: no cal per obrir la "
+            "porta, però si el resols et resta 60 s de la nit. Demostra-ho "
+            "per inducció fent servir congruències.\n"
             "Ex. 11: 5ⁿ + 1 és divisible per 2 però no per 4.\n"
             "Ex. 30: 3⁴ⁿ + 9 és múltiple de 10.",
         steps: [
@@ -537,9 +614,11 @@ const Puzzle finalPuzzle = Puzzle(
   title: "La porta d'Euler",
   source: 'Llista d\'exercicis · Ex. 4',
   statement:
-      "El pany «a 3 c 5 4» funciona a ℤ₇ = {1, …, 7}. Ja tens les xifres de "
-      "les sales, però falten a i c. Les condicions que han de complir no són "
-      "a la porta: Euler les va amagar en un llibre.",
+      "Tornes al vestíbul amb les tres xifres. Les rodes del pany «a 3 c 5 4» "
+      "tenen set posicions, com els dies de la setmana: funcionen a "
+      "ℤ₇ = {1, …, 7}. Falten a i c, i les condicions que han de complir no "
+      "són a la porta: Euler les va amagar en un llibre. Afanya't: al carrer "
+      "ja se sent la carrossa de l'Acadèmia.",
   steps: [
     CodeStep(
       prompt: 'Primer, a: quin element de ℤ₇ multiplicat per 3 dona 1?',
@@ -568,11 +647,13 @@ const String secretBookUnlockedBy = '2.3';
 const String secretBookRoom = 'sala1';
 const String secretBookTitle = 'Un llibre que brilla';
 const String secretBookText =
-    "Entre dos volums de Venn hi ha un quadern d'Euler que abans no hi era. "
-    "A l'última pàgina hi diu:\n\n«a és l'invers de 3; c·5 ≡ 4, a ℤ₇.»";
+    "Al calaix del mig de la prestatgeria, darrere dels sis volums, hi ha un "
+    "quadern petit que brilla a la llum de l'espelma. És el quadern de "
+    "butxaca d'Euler. A l'última pàgina, amb la lletra que li quedava quan "
+    "ja no hi veia:\n\n«a és l'invers de 3; c·5 ≡ 4, a ℤ₇.»";
 const String secretBookMissing =
-    "Encara no has trobat on són escrites les condicions. Potser el missatge "
-    "xifrat de la Sala dels Rellotges diu on buscar…";
+    "Encara no has trobat on són escrites les condicions. Potser les cartes "
+    "xifrades de la Sala dels Rellotges diuen on buscar…";
 
 /// Tots els puzles, inclosa la porta, indexats per id.
 final Map<String, Puzzle> puzzlesById = {

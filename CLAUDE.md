@@ -23,7 +23,7 @@
 | Enunciats | **Fixos**, no aleatoris. El contingut viu a `lib/data/content.dart`. |
 | Estat | `flutter_riverpod` 2.x (`Notifier`) + `shared_preferences`. No afegeixis Hive, Bloc ni go_router. |
 | Pistes | 3 nivells per puzle ("Suggeriment", "Teoria", "Gairebé la solució"). Penalització de **+30, +60 i +120 s**. |
-| Temps | Cronòmetre que compta endavant. El widget `ModClock` mostra `t mod 60`. El temps total és el temps real més les penalitzacions. |
+| Temps | Cronòmetre que compta endavant. El widget `GameClock` mostra el temps total i, dins d'un enigma, també el temps d'aquell enigma (temps real a dins, acumulat entre visites i congelat en resoldre'l, més la penalització de les seves pistes). El temps total és el temps real més les penalitzacions. |
 | Alfabet | **27 lletres, amb la Ç entre la N i la O**: `ABCDEFGHIJKLMNÇOPQRSTUVWXYZ`. No hi ha Ñ. |
 | Notació del professor | A la llista d'exercicis, ℤₙ s'escriu com a **{1, …, n}**, amb n ≡ 0. Per exemple, ℤ₇ = {1,…,7} i ℤ₅ = {1,…,5}. Respecta aquesta notació allà on el PDF la fa servir: la taula mod 5 del puzle 2.1 i les rodes de la porta final. |
 | Aritmètica modular | Només congruències, ℤ/nℤ, inversos i xifrats afins. **No facis servir** el Teorema Xinès del Residu, Fermat ni φ d'Euler: no s'han donat a classe. |
@@ -98,7 +98,7 @@ La porta final demana calcular `a` i `c`.
 ### Sala 1 · La Biblioteca: Conjunts (apunts FOMA)
 | Puzle | Passos i solució |
 |---|---|
-| **1.1 Venn.** 40 alumnes: 25 Flutter (A), 18 Angular (B), 7 tots dos | \|A∪B\| = **36** · cap dels dos = **4** |
+| **1.1 Venn.** 40 lectors: 25 llatí (A), 18 grec (B), 7 totes dues | \|A∪B\| = **36** · cap dels dos = **4** |
 | **1.2 De Morgan.** La porta s'obre amb (A∪B)′ | (A∪B)′ = **A′ ∩ B′** · (A∩B)′ = **A′ ∪ B′** |
 | **1.3 Particions.** Llibres 1–6 | La partició és **{1,3,5},{2,4},{6}** · amb a≡b (mod 3), la classe [2] = **{2,5}** |
 
@@ -228,7 +228,7 @@ Genera `docs/Memoria_Cambra_Euler.docx`, amb `python-docx` o el paquet npm `docx
 Estructura:
 1. **Portada:** títol, assignatura (FOMA), autor (Eloy), curs 2026/27 i EPSEVG-UPC.
 2. **Objectius:** aprendre jugant; relacionar els conjunts (classes d'equivalència) amb ℤ/nℤ, i connectar la inducció amb les progressions geomètriques.
-3. **Descripció del joc:** narrativa, mapa de les sales, pany «a 3 c 5 4», pistes i temps en mod 60.
+3. **Descripció del joc:** narrativa, mapa de les sales, pany «a 3 c 5 4», pistes, temps total i temps per enigma.
 4. **Una secció per sala i per puzle:**
    - Enunciat i origen (apunts o número d'exercici).
    - Teoria aplicada.

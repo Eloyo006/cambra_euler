@@ -6,7 +6,7 @@ import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
 import '../state/settings.dart';
-import '../widgets/mod_clock.dart';
+import '../widgets/game_clock.dart';
 import 'puzzle_screen.dart';
 import 'room_screen.dart';
 
@@ -20,7 +20,7 @@ class MapScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('El vestíbul'),
-        actions: const [SoundToggle(), ModClock(), SizedBox(width: 16)],
+        actions: const [SoundToggle(), GameClock(), SizedBox(width: 16)],
       ),
       body: SafeArea(
         child: ListView(
@@ -132,9 +132,15 @@ class _RoomCard extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: room.color,
-                foregroundColor: AppColors.chalk,
-                child: Text('${room.number}'),
+                backgroundColor: accessibleBar(room.color),
+                foregroundColor: onColor(accessibleBar(room.color)),
+                child: Text(
+                  '${room.number}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

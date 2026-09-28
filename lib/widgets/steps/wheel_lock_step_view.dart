@@ -129,11 +129,14 @@ class _Wheel extends StatelessWidget {
         width: 54,
         child: Column(
           children: [
-            IconButton(
-              tooltip: 'Puja la roda $position',
-              onPressed: locked ? null : () => onTurn(-1),
-              icon: const Icon(Icons.keyboard_arrow_up),
-            ),
+            if (locked)
+              const SizedBox(height: 48)
+            else
+              IconButton(
+                tooltip: 'Puja la roda $position',
+                onPressed: () => onTurn(-1),
+                icon: const Icon(Icons.keyboard_arrow_up),
+              ),
             Container(
               height: _itemExtent * 3,
               decoration: BoxDecoration(

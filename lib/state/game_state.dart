@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,7 @@ class GameState {
   const GameState({
     this.progress = const {},
     this.hints = const {},
+    this.puzzleTimes = const {},
     this.elapsed = 0,
     this.penalty = 0,
     this.started = false,
@@ -37,6 +39,10 @@ class GameState {
 
   /// Pistes obertes per puzle (id → 0..3).
   final Map<String, int> hints;
+
+  /// Temps real passat dins de cada puzle (id → segons), acumulat entre
+  /// visites. Deixa de comptar quan el puzle es resol.
+  final Map<String, int> puzzleTimes;
 
   /// Temps real jugat, en segons.
   final int elapsed;
@@ -68,6 +74,13 @@ class GameState {
   bool isSolved(Puzzle p) => stepsDone(p) >= p.steps.length;
   int hintsUsed(Puzzle p) => hints[p.id] ?? 0;
 
+  /// Penalització de les pistes obertes en aquest puzle.
+  int hintPenalty(Puzzle p) =>
+      hintPenalties.take(hintsUsed(p)).fold(0, (s, v) => s + v);
+
+  /// Temps d'un puzle: temps real a dins + penalització de les seves pistes.
+  int puzzleTime(Puzzle p) => (puzzleTimes[p.id] ?? 0) + hintPenalty(p);
+
   /// Una sala està superada quan tots els puzles obligatoris ho estan.
   bool isRoomSolved(Room r) =>
       r.puzzles.where((p) => !p.optional).every(isSolved);
@@ -85,6 +98,7 @@ class GameState {
   GameState copyWith({
     Map<String, int>? progress,
     Map<String, int>? hints,
+    Map<String, int>? puzzleTimes,
     int? elapsed,
     int? penalty,
     bool? started,
@@ -94,6 +108,7 @@ class GameState {
   }) => GameState(
     progress: progress ?? this.progress,
     hints: hints ?? this.hints,
+    puzzleTimes: puzzleTimes ?? this.puzzleTimes,
     elapsed: elapsed ?? this.elapsed,
     penalty: penalty ?? this.penalty,
     started: started ?? this.started,
@@ -105,6 +120,7 @@ class GameState {
   Map<String, dynamic> toJson() => {
     'progress': progress,
     'hints': hints,
+    'puzzleTimes': puzzleTimes,
     'elapsed': elapsed,
     'penalty': penalty,
     'started': started,
@@ -116,6 +132,8 @@ class GameState {
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
     progress: Map<String, int>.from(j['progress'] as Map? ?? const {}),
     hints: Map<String, int>.from(j['hints'] as Map? ?? const {}),
+    // Les partides desades abans d'afegir-lo no el tenen: comença buit.
+    puzzleTimes: Map<String, int>.from(j['puzzleTimes'] as Map? ?? const {}),
     elapsed: j['elapsed'] as int? ?? 0,
     penalty: j['penalty'] as int? ?? 0,
     started: j['started'] as bool? ?? false,
@@ -130,6 +148,9 @@ class GameNotifier extends Notifier<GameState> {
 
   /// Cert mentre el jugador és dins del joc (no a la pantalla d'inici).
   bool _active = false;
+
+  /// Id del puzle que té la pantalla oberta, o `null`.
+  String? _openPuzzle;
 
   SharedPreferences get _prefs => ref.read(prefsProvider);
 
@@ -162,7 +183,15 @@ class GameNotifier extends Notifier<GameState> {
     if (!_active || !state.started || state.finished || _timer != null) {
       return;
     }
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => tick());
+  }
+
+  /// La pantalla d'un puzle s'obre: el seu temps comença a comptar.
+  void enterPuzzle(Puzzle p) => _openPuzzle = p.id;
+
+  /// La pantalla del puzle es tanca.
+  void exitPuzzle(Puzzle p) {
+    if (_openPuzzle == p.id) _openPuzzle = null;
   }
 
   /// El jugador torna a la pantalla d'inici: el rellotge s'atura.
@@ -178,8 +207,18 @@ class GameNotifier extends Notifier<GameState> {
     _save();
   }
 
-  void _tick() {
-    state = state.copyWith(elapsed: state.elapsed + 1);
+  /// Un segon de joc: suma al temps real i al del puzle obert (si no
+  /// està resolt).
+  @visibleForTesting
+  void tick() {
+    final id = _openPuzzle;
+    final p = id == null ? null : puzzlesById[id];
+    state = state.copyWith(
+      elapsed: state.elapsed + 1,
+      puzzleTimes: p == null || state.isSolved(p)
+          ? null
+          : {...state.puzzleTimes, p.id: (state.puzzleTimes[p.id] ?? 0) + 1},
+    );
     if (state.elapsed % 5 == 0) _save();
   }
 

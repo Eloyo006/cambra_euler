@@ -135,6 +135,74 @@ void main() {
     expect(c.read(gameProvider).total, 440);
   });
 
+  group('temps per enigma', () {
+    final p = rooms[0].puzzles[0];
+
+    test('només compta mentre el puzle és obert', () async {
+      final c = await makeContainer();
+      final game = c.read(gameProvider.notifier);
+      game.tick(); // al vestíbul
+      game.enterPuzzle(p);
+      game
+        ..tick()
+        ..tick();
+      game.exitPuzzle(p);
+      game.tick();
+      final s = c.read(gameProvider);
+      expect(s.elapsed, 4);
+      expect(s.puzzleTime(p), 2);
+    });
+
+    test("s'acumula entre visites i inclou les pistes", () async {
+      final c = await makeContainer();
+      final game = c.read(gameProvider.notifier);
+      game
+        ..enterPuzzle(p)
+        ..tick()
+        ..exitPuzzle(p)
+        ..enterPuzzle(p)
+        ..tick()
+        ..revealHint(p)
+        ..revealHint(p);
+      expect(c.read(gameProvider).puzzleTime(p), 2 + 30 + 60);
+    });
+
+    test('es congela quan el puzle es resol', () async {
+      final c = await makeContainer();
+      final game = c.read(gameProvider.notifier)..enterPuzzle(p);
+      game.tick();
+      for (final step in p.steps) {
+        expect(game.answer(p, solutionOf(step)), isTrue);
+      }
+      game
+        ..tick()
+        ..tick();
+      final s = c.read(gameProvider);
+      expect(s.puzzleTime(p), 1);
+      expect(s.elapsed, 3);
+    });
+
+    test('es desa i es recupera', () async {
+      final c = await makeContainer();
+      c.read(gameProvider.notifier)
+        ..enterPuzzle(p)
+        ..tick()
+        ..pause();
+      final raw = c.read(prefsProvider).getString(storageKey)!;
+      final c2 = await makeContainer({storageKey: raw});
+      expect(c2.read(gameProvider).puzzleTime(p), 1);
+    });
+
+    test('una partida desada sense el camp es carrega igual', () async {
+      final old = jsonEncode({'elapsed': 90, 'penalty': 30});
+      final c = await makeContainer({storageKey: old});
+      final s = c.read(gameProvider);
+      expect(s.elapsed, 90);
+      expect(s.puzzleTimes, isEmpty);
+      expect(s.puzzleTime(p), 0);
+    });
+  });
+
   test('el temps total no és mai negatiu', () {
     final s = GameState(progress: {'3.4': puzzlesById['3.4']!.steps.length});
     expect(s.bonus, 60);

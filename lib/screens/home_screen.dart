@@ -87,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
-                child: Text(introText, style: text.bodyLarge),
+                child: Text(homeBlurb, style: text.bodyLarge),
               ),
             ),
             const SizedBox(height: 24),

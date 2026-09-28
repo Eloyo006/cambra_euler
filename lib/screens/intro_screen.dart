@@ -50,36 +50,54 @@ class _IntroScreenState extends State<IntroScreen> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _done ? null : _skip,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.history_edu, size: 48, color: AppColors.gold),
-              const SizedBox(height: 24),
-              Semantics(
-                // Els lectors de pantalla llegeixen el text sencer.
-                label: widget.text,
-                child: ExcludeSemantics(
-                  child: Text(
-                    widget.text.substring(
-                      0,
-                      _shown.clamp(0, widget.text.length),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
+                  children: [
+                    const Icon(
+                      Icons.history_edu,
+                      size: 48,
+                      color: AppColors.gold,
                     ),
-                    style: text.bodyLarge?.copyWith(height: 1.5, fontSize: 18),
-                  ),
+                    const SizedBox(height: 24),
+                    Semantics(
+                      // Els lectors de pantalla llegeixen el text sencer.
+                      label: widget.text,
+                      child: ExcludeSemantics(
+                        child: Text(
+                          widget.text.substring(
+                            0,
+                            _shown.clamp(0, widget.text.length),
+                          ),
+                          style: text.bodyLarge?.copyWith(
+                            height: 1.5,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 32),
-              if (_done)
-                FilledButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Endavant'),
-                )
-              else
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(alignment: Alignment.center),
-                  onPressed: _skip,
-                  child: const Text('Salta'),
-                ),
+              // El botó queda fix a baix: la intro és llarga.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: _done
+                    ? FilledButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('Endavant'),
+                      )
+                    : OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          alignment: Alignment.center,
+                        ),
+                        onPressed: _skip,
+                        child: const Text('Salta'),
+                      ),
+              ),
             ],
           ),
         ),

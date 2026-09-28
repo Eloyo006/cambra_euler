@@ -5,7 +5,7 @@ import '../core/theme.dart';
 import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
-import '../widgets/mod_clock.dart';
+import '../widgets/game_clock.dart';
 import '../widgets/secret_book.dart';
 import 'puzzle_screen.dart';
 
@@ -20,8 +20,12 @@ class RoomScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(room.name),
-        backgroundColor: room.color,
-        actions: const [ModClock(), SizedBox(width: 16)],
+        backgroundColor: accessibleBar(room.color),
+        foregroundColor: onColor(accessibleBar(room.color)),
+        actions: [
+          GameClock(color: onColor(accessibleBar(room.color))),
+          const SizedBox(width: 16),
+        ],
       ),
       body: SafeArea(
         child: ListView(
@@ -29,7 +33,7 @@ class RoomScreen extends ConsumerWidget {
           children: [
             Text(
               room.topic.toUpperCase(),
-              style: text.labelLarge?.copyWith(color: room.color),
+              style: text.labelLarge?.copyWith(color: readableOn(room.color)),
             ),
             const SizedBox(height: 8),
             Text(
@@ -87,7 +91,9 @@ class _PuzzleTile extends StatelessWidget {
               : unlocked
               ? Icons.extension
               : Icons.lock,
-          color: solved ? AppColors.ok : room.color,
+          color: solved
+              ? AppColors.ok
+              : readableOn(room.color, background: AppColors.card, minRatio: 3),
         ),
         title: Text('${puzzle.id} · ${puzzle.title}'),
         subtitle: Text(

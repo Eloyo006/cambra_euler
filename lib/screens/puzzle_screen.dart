@@ -7,7 +7,7 @@ import '../models/puzzle.dart';
 import '../state/game_state.dart';
 import '../widgets/celebrations.dart';
 import '../widgets/feedback.dart';
-import '../widgets/mod_clock.dart';
+import '../widgets/game_clock.dart';
 import '../widgets/steps/step_view.dart';
 import 'victory_screen.dart';
 
@@ -31,6 +31,21 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
 
   Puzzle get _puzzle => widget.puzzle;
   Color get _color => widget.room?.color ?? AppColors.gold;
+
+  /// Es guarda aquí perquè a `dispose` ja no es pot fer servir `ref`.
+  late final GameNotifier _game;
+
+  @override
+  void initState() {
+    super.initState();
+    _game = ref.read(gameProvider.notifier)..enterPuzzle(_puzzle);
+  }
+
+  @override
+  void dispose() {
+    _game.exitPuzzle(_puzzle);
+    super.dispose();
+  }
 
   bool _answer(Object answer) {
     final index = ref.read(gameProvider).stepsDone(_puzzle);
@@ -87,8 +102,17 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_puzzle.title),
-        actions: const [ModClock(), SizedBox(width: 16)],
+        // Amb el rellotge de dues línies, els títols llargs s'encongeixen
+        // una mica en lloc de quedar tallats.
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(_puzzle.title),
+        ),
+        actions: [
+          GameClock(puzzle: _puzzle),
+          const SizedBox(width: 16),
+        ],
       ),
       body: SafeArea(
         child: ListView(
@@ -96,7 +120,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
           children: [
             Text(
               _puzzle.source,
-              style: text.labelMedium?.copyWith(color: _color),
+              style: text.labelMedium?.copyWith(color: readableOn(_color)),
             ),
             const SizedBox(height: 8),
             Text(_puzzle.statement, style: text.bodyLarge),

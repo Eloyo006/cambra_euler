@@ -65,7 +65,12 @@ class _VennStepViewState extends State<VennStepView> {
               child: ExcludeSemantics(
                 child: CustomPaint(
                   size: size,
-                  painter: _VennPainter(layout, _values, correct),
+                  painter: _VennPainter(
+                    layout,
+                    _values,
+                    correct,
+                    DefaultTextStyle.of(context).style,
+                  ),
                 ),
               ),
             );
@@ -102,11 +107,14 @@ class _VennStepViewState extends State<VennStepView> {
 }
 
 class _VennPainter extends CustomPainter {
-  _VennPainter(this.layout, this.values, this.correct);
+  _VennPainter(this.layout, this.values, this.correct, this.base);
 
   final VennLayout layout;
   final List<int?> values;
   final List<bool> correct;
+
+  /// Estil de text del tema (font), per coherència amb la resta de la UI.
+  final TextStyle base;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -166,7 +174,7 @@ class _VennPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: s,
-        style: TextStyle(
+        style: base.copyWith(
           color: color,
           fontSize: size,
           fontWeight: FontWeight.bold,

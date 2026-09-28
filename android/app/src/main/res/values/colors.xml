@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AppColors.ink -->
+    <color name="ink">#FF12161D</color>
+    <color name="gold">#FFE0B04A</color>
+    <color name="ic_launcher_background">#FF12161D</color>
+</resources>

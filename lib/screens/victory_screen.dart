@@ -78,6 +78,32 @@ class VictoryScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              Text('Temps per enigma', style: text.titleMedium),
+              Text(
+                'Temps dins de cada enigma, amb la penalització de les seves '
+                'pistes.',
+                style: text.bodySmall,
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Column(
+                  children: [
+                    for (final r in rooms)
+                      for (final p in r.puzzles)
+                        // L'opcional només surt si s'hi ha jugat.
+                        if (!p.optional || s.puzzleTime(p) > 0)
+                          _Row(
+                            '${p.id} · ${p.title}',
+                            formatTime(s.puzzleTime(p)),
+                          ),
+                    _Row(
+                      finalPuzzle.title,
+                      formatTime(s.puzzleTime(finalPuzzle)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               Text('Millors partides', style: text.titleMedium),
               const SizedBox(height: 8),
               Card(

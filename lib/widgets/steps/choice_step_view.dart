@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/typography.dart';
 import '../../models/puzzle.dart';
 import 'step_view.dart';
 
@@ -19,7 +20,7 @@ class ChoiceStepView extends StatelessWidget {
           child: OutlinedButton(
             onPressed: () => onSubmit(i),
             child: Text(
-              step.options[i],
+              keepMathTogether(step.options[i]),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),

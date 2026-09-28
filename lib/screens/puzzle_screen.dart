@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme.dart';
+import '../core/typography.dart';
 import '../data/content.dart';
 import '../models/puzzle.dart';
 import '../state/game_state.dart';
@@ -123,7 +124,7 @@ class _PuzzleScreenState extends ConsumerState<PuzzleScreen> {
               style: text.labelMedium?.copyWith(color: readableOn(_color)),
             ),
             const SizedBox(height: 8),
-            Text(_puzzle.statement, style: text.bodyLarge),
+            Text(keepMathTogether(_puzzle.statement), style: text.bodyLarge),
             if (_puzzle.theory != null) ...[
               const SizedBox(height: 12),
               _InfoCard(
@@ -267,9 +268,9 @@ class _SolvedStep extends StatelessWidget {
         children: [
           ListTile(
             leading: AnimatedCheck(animate: animate),
-            title: Text(step.prompt),
+            title: Text(keepMathTogether(step.prompt)),
             subtitle: Text(
-              step.solutionLabel,
+              keepMathTogether(step.solutionLabel),
               style: const TextStyle(
                 color: AppColors.gold,
                 fontWeight: FontWeight.w600,

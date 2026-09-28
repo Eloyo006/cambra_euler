@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/typography.dart';
 import '../../core/theme.dart';
 import '../../models/puzzle.dart';
 import 'step_view.dart';
@@ -42,7 +43,7 @@ class TapLineStepView extends StatelessWidget {
                         style: const TextStyle(color: AppColors.gold),
                       ),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(step.lines[i])),
+                      Expanded(child: Text(keepMathTogether(step.lines[i]))),
                     ],
                   ),
                 ),

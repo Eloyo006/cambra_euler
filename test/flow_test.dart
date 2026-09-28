@@ -1,5 +1,6 @@
 // Flux complet a través de la UI: inici → sala → puzle → pista → resolució.
 import 'helpers.dart';
+import 'package:cambra_euler/core/typography.dart';
 import 'package:cambra_euler/main.dart';
 import 'package:cambra_euler/state/game_state.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ void main() {
     await tapVisible(tester, find.text('La Biblioteca'));
     final p11 = rooms.first.puzzles.first;
     await tapVisible(tester, find.text('${p11.id} · ${p11.title}'));
-    expect(find.text(p11.statement), findsOneWidget);
+    expect(find.text(keepMathTogether(p11.statement)), findsOneWidget);
 
     // Pista 1 (+30 s).
     await tapVisible(tester, find.textContaining('Demana una pista'));

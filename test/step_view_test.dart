@@ -1,3 +1,4 @@
+import 'package:cambra_euler/core/typography.dart';
 import 'package:cambra_euler/core/theme.dart';
 import 'package:cambra_euler/models/puzzle.dart';
 import 'package:cambra_euler/widgets/celebrations.dart';
@@ -75,7 +76,7 @@ void main() {
     ) async {
       await pumpStep(tester, step);
       expect(tester.takeException(), isNull);
-      expect(find.text(step.prompt), findsOneWidget);
+      expect(find.text(keepMathTogether(step.prompt)), findsOneWidget);
     });
   }
 

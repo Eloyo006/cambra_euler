@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/typography.dart';
 import '../../core/theme.dart';
 import '../../data/content.dart';
 import '../../models/puzzle.dart';
@@ -133,7 +134,7 @@ class _StepViewState extends State<StepView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              widget.step.prompt,
+              keepMathTogether(widget.step.prompt),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),

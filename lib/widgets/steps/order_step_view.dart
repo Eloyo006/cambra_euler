@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/typography.dart';
 import '../../core/theme.dart';
 import '../../models/puzzle.dart';
 import 'step_view.dart';
@@ -43,7 +44,7 @@ class _OrderStepViewState extends State<OrderStepView> {
                     '${i + 1}',
                     style: const TextStyle(color: AppColors.gold),
                   ),
-                  title: Text(widget.step.lines[_order[i]]),
+                  title: Text(keepMathTogether(widget.step.lines[_order[i]])),
                   trailing: const Icon(Icons.drag_handle),
                 ),
               ),

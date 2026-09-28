@@ -1,11 +1,11 @@
 {
-    "name": "cambra_euler",
-    "short_name": "cambra_euler",
+    "name": "La Cambra d'Euler",
+    "short_name": "Cambra d'Euler",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#12161D",
+    "theme_color": "#12161D",
+    "description": "La Cambra d'Euler: escape room matemàtic (FOMA, EPSEVG-UPC).",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

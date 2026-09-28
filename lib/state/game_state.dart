@@ -29,7 +29,7 @@ final gameProvider = NotifierProvider<GameNotifier, GameState>(
 
 class GameState {
   const GameState({
-    this.seed = 0,
+    this.seed = pdfSeed,
     this.progress = const {},
     this.hints = const {},
     this.puzzleTimes = const {},
@@ -146,8 +146,8 @@ class GameState {
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) => GameState(
-    // Les partides desades abans de les variants no en tenen: llavor 0.
-    seed: j['seed'] as int? ?? 0,
+    // Les partides desades abans de les variants eren les del PDF.
+    seed: j['seed'] as int? ?? pdfSeed,
     progress: Map<String, int>.from(j['progress'] as Map? ?? const {}),
     hints: Map<String, int>.from(j['hints'] as Map? ?? const {}),
     // Les partides desades abans d'afegir-lo no el tenen: comença buit.

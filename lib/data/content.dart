@@ -6,6 +6,7 @@ import 'sala3.dart';
 import 'variation.dart';
 
 export 'texts.dart';
+export 'variation.dart' show pdfSeed;
 
 /// Tot el contingut d'una partida, generat a partir de la seva llavor.
 ///

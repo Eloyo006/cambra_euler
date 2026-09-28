@@ -79,6 +79,7 @@ class TextStep extends PuzzleStep {
     required this.accepted,
     this.aid = StepAid.none,
     this.aidMinHints = 0,
+    this.affine = (a: 2, b: 3),
     super.success,
   });
 
@@ -86,6 +87,9 @@ class TextStep extends PuzzleStep {
   final List<String> accepted;
 
   final StepAid aid;
+
+  /// Clau e(x) = a·x + b de la taula d'ajuda [StepAid.affineTable].
+  final ({int a, int b}) affine;
 
   /// Pistes que cal haver obert perquè es vegi l'ajuda (0 = sempre).
   final int aidMinHints;

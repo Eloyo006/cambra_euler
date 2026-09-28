@@ -40,6 +40,13 @@ void main() {
     expect(items, [1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
+  test('Rng.first tria sempre el primer i no barreja (variant del PDF)', () {
+    final r = Rng.first();
+    expect(r.pick(['pdf', 'b', 'c']), 'pdf');
+    expect(r.pick([1, 2, 3]), 1);
+    expect(r.shuffled([1, 2, 3, 4]), [1, 2, 3, 4]);
+  });
+
   test('pick torna un element de la llista', () {
     final r = Rng(1, 'z');
     for (var i = 0; i < 50; i++) {

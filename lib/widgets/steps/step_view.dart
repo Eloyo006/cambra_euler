@@ -85,7 +85,7 @@ class _StepViewState extends State<StepView> {
     }
     return switch (s.aid) {
       StepAid.caesarWheel => const CaesarWheel(),
-      StepAid.affineTable => const AffineTable(),
+      StepAid.affineTable => AffineTable(a: s.affine.a, b: s.affine.b),
       StepAid.none => null,
     };
   }

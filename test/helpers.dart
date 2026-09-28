@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Llavor fixa dels tests: les partides noves i els `GameState()` la fan
 /// servir, així el contingut no depèn de l'atzar.
-const testSeed = 0;
+const testSeed = pdfSeed;
 
 /// Contingut de la partida dels tests.
 final testContent = GameContent.forSeed(testSeed);

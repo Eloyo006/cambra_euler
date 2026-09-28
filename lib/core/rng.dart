@@ -7,14 +7,20 @@
 /// Cada puzle té el seu propi generador, `Rng(seed, '1.1')`, de manera que
 /// afegir o treure un puzle no canvia les variants dels altres.
 class Rng {
-  Rng(int seed, String key) : _state = _mix(seed ^ _fnv1a(key));
+  Rng(int seed, String key) : _state = _mix(seed ^ _fnv1a(key)), _first = false;
+
+  /// Generador «sense atzar»: [pick] tria sempre el primer element i
+  /// [shuffled] no barreja. Serveix per a la variant del PDF del professor.
+  Rng.first() : _state = 0, _first = true;
 
   static const _mask = 0xFFFFFFFF;
   int _state;
+  final bool _first;
 
   /// Enter uniforme a [0, max).
   int nextInt(int max) {
     assert(max > 0);
+    if (_first) return 0;
     _state = (_state + 0x9E3779B9) & _mask;
     return _mix(_state) % max;
   }
@@ -25,6 +31,7 @@ class Rng {
   /// Una còpia de [items] barrejada (Fisher–Yates).
   List<T> shuffled<T>(List<T> items) {
     final out = [...items];
+    if (_first) return out;
     for (var i = out.length - 1; i > 0; i--) {
       final j = nextInt(i + 1);
       final t = out[i];

@@ -218,10 +218,10 @@ void main() {
       expect(jsonDecode(raw)['seed'], 777);
     });
 
-    test('una partida desada sense llavor fa servir la 0', () async {
+    test('una partida desada sense llavor és la del PDF', () async {
       final old = jsonEncode({'elapsed': 90});
       final c = await makeContainer({storageKey: old});
-      expect(c.read(gameProvider).seed, 0);
+      expect(c.read(gameProvider).seed, pdfSeed);
     });
 
     test('«Nova partida» tria una llavor nova', () async {

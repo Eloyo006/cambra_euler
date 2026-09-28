@@ -1,5 +1,6 @@
 // Verifica matemàticament totes les solucions de la §4 del brief.
 import 'package:cambra_euler/core/modular.dart';
+import 'package:cambra_euler/core/set_expr.dart';
 import 'package:cambra_euler/data/content.dart';
 import 'package:cambra_euler/models/puzzle.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -80,6 +81,184 @@ void main() {
           isNotNull,
           reason: 'llavor $seed',
         );
+      }
+    });
+
+    test('les variants existeixen de veritat (no surt sempre la mateixa)', () {
+      // «Empremta» d'un puzle: enunciat, preguntes i solucions.
+      String print(Puzzle pz) => [
+        pz.statement,
+        for (final s in pz.steps) '${s.prompt}|${s.solutionLabel}',
+      ].join('\n');
+      for (final id in ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3']) {
+        final prints = {
+          for (final seed in seeds)
+            print(GameContent.forSeed(seed).puzzlesById[id]!),
+        };
+        expect(prints.length, greaterThan(1), reason: id);
+      }
+    });
+
+    test('a cada llavor, les opcions són diferents i vàlides', () {
+      for (final seed in seeds) {
+        final c = GameContent.forSeed(seed);
+        for (final pz in c.puzzlesById.values) {
+          for (final s in pz.steps.whereType<ChoiceStep>()) {
+            expect(
+              s.correctIndex,
+              inInclusiveRange(0, s.options.length - 1),
+              reason: '${pz.id} · llavor $seed',
+            );
+            expect(
+              s.options.toSet(),
+              hasLength(s.options.length),
+              reason: '${pz.id} · llavor $seed',
+            );
+          }
+        }
+      }
+    });
+
+    test('1.1: totes les regions tenen gent i la unió quadra', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['1.1']!;
+        final venn = pz.steps[0] as VennStep;
+        final union = pz.steps[1] as CodeStep;
+        expect(venn.regions.every((n) => n > 0), isTrue, reason: '$seed');
+        expect(
+          union.solution,
+          '${venn.regions[0] + venn.regions[1] + venn.regions[2]}',
+        );
+        // Els números de l'enunciat: total, A, B, A∩B.
+        final total = venn.regions.reduce((a, b) => a + b);
+        expect(pz.statement, contains('«$total lectors'));
+      }
+    });
+
+    test('1.2: la resposta és equivalent i no és una còpia', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['1.2']!;
+        for (final s in pz.steps.cast<ExpressionStep>()) {
+          expect(setExprEquivalent(s.solution, s.target), isTrue);
+          expect(s.solution.contains('('), isFalse);
+          expect(pz.hints[2], contains(s.solution));
+        }
+      }
+    });
+
+    test('1.3: només una opció és una partició i només una és [k]', () {
+      List<Set<int>> parse(String option) => [
+        for (final m in RegExp(r'\{([^}]*)\}|∅').allMatches(option))
+          m.group(0) == '∅'
+              ? <int>{}
+              : {for (final x in m.group(1)!.split(',')) int.parse(x.trim())},
+      ];
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['1.3']!;
+        final test = pz.steps[0] as ChoiceStep;
+        final items = (pz.steps[1] as PartitionStep).items;
+        final valid = [
+          for (var i = 0; i < test.options.length; i++)
+            if (PartitionStep.isPartition(parse(test.options[i]), items)) i,
+        ];
+        expect(valid, [test.correctIndex], reason: 'llavor $seed');
+
+        final classes = (pz.steps[2] as PartitionStep).target!;
+        final q = pz.steps[3] as ChoiceStep;
+        final k = int.parse(RegExp(r'\[(\d+)\]').firstMatch(q.prompt)![1]!);
+        final right = classes.firstWhere((c) => c.contains(k));
+        final matching = [
+          for (var i = 0; i < q.options.length; i++)
+            if (parse(q.options[i]).single.length == right.length &&
+                parse(q.options[i]).single.containsAll(right))
+              i,
+        ];
+        expect(matching, [q.correctIndex], reason: 'llavor $seed');
+        // Les classes són les de mod 3.
+        for (final c in classes) {
+          expect(c.map((x) => x % 3).toSet(), hasLength(1));
+        }
+      }
+    });
+
+    List<int> nums(String s, String pattern) => [
+      for (final g in RegExp(pattern).firstMatch(s)!.groups([1, 2]))
+        int.parse(g!),
+    ];
+
+    test('2.1: l\'invers és correcte i l\'equació no té solució', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['2.1']!;
+        final q = pz.steps[2] as CodeStep;
+        final k = int.parse(
+          RegExp(r'invers de (\d)').firstMatch(q.prompt)![1]!,
+        );
+        expect(mod(k * int.parse(q.solution), 5), 1, reason: '$seed');
+        final lock = pz.steps[4] as WheelLockStep;
+        final [a, b] = nums(lock.prompt, r'(\d)x ≡ (\d) \(mod 6\)');
+        expect(solveLinear(a, b, 6), isEmpty, reason: '$a x ≡ $b');
+        expect(lock.solution, isNull);
+      }
+    });
+
+    test('2.2: els panys compleixen les congruències i són únics', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['2.2']!;
+        final l1 = pz.steps[0] as WheelLockStep;
+        final [a, b, c, d] = l1.solution!.map(int.parse).toList();
+        final [p, _] = nums(l1.prompt, r'(\d)b ≡ c i (\d)a');
+        final [_, q] = nums(l1.prompt, r'(\d)b ≡ c i (\d)a');
+        expect(mod(p * b - c, 5), 0, reason: '$seed');
+        expect(mod(q * a - d, 5), 0, reason: '$seed');
+        expect(solveLinear(p, c, 5), [b]);
+        expect(b, lessThan(5));
+        expect(d, lessThan(5));
+
+        final l2 = pz.steps[1] as WheelLockStep;
+        final [k, m] = nums(l2.prompt, r'(\d)X ≡ (\d) \(mod 5\)');
+        final x = l2.symbols.indexOf(l2.solution!.last);
+        expect(solveLinear(k, m, 5), [x], reason: '$seed');
+      }
+    });
+
+    test('2.3: els tres xifrats es desxifren bé', () {
+      for (final seed in seeds) {
+        final pz = GameContent.forSeed(seed).puzzlesById['2.3']!;
+        // César.
+        final cesar = pz.steps[0] as TextStep;
+        final cm = RegExp(
+          r'diu (\S+), xifrat.*x \+ (\d+) \(mod 27\)',
+        ).firstMatch(cesar.prompt)!;
+        expect(
+          affineDecrypt(cm[1]!.replaceAll('_', ' '), 1, int.parse(cm[2]!)),
+          cesar.accepted.first,
+          reason: '$seed',
+        );
+        // Mòdul 6: cada lletra enviada té més d'un origen.
+        final q = pz.steps[1] as ChoiceStep;
+        final qm = RegExp(
+          r'e\(x\) = (\d)x \+ (\d) \(mod 6\) i envia (\w+)',
+        ).firstMatch(q.prompt)!;
+        final a6 = int.parse(qm[1]!), b6 = int.parse(qm[2]!);
+        for (final ch in qm[3]!.split('')) {
+          final y = alphabet27.indexOf(ch);
+          final origins = [
+            for (var x = 0; x < 6; x++)
+              if (mod(a6 * x + b6, 6) == y) x,
+          ];
+          expect(origins.length, greaterThan(1), reason: '$seed $ch');
+          expect(q.solutionLabel, contains('${origins.length} orígens'));
+        }
+        // Afí.
+        final af = pz.steps[2] as TextStep;
+        final am = RegExp(
+          r': (\S+), xifrat.*e\(x\) = (\d+)x \+ (\d+).*és (\d+)\.',
+        ).firstMatch(af.prompt)!;
+        final ka = int.parse(am[2]!), kb = int.parse(am[3]!);
+        expect(mod(ka * int.parse(am[4]!), 27), 1, reason: 'invers $seed');
+        expect(affineDecrypt(am[1]!, ka, kb), af.accepted.first);
+        expect(af.affine, (a: ka, b: kb));
+        expect(pz.outro, startsWith(af.accepted.first));
       }
     });
 

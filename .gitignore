@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Diferències que genera flutter test quan una captura no coincideix
+**/failures/
